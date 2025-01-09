@@ -10,28 +10,42 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
+// Yeşil, Mavi ve Beyaz tonlarıyla özelleştirilmiş renk paletleri
 
+// Açık mod renk paleti
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = Color(0xFF4CAF50),  // Yeşil (Primary)
+    secondary = Color(0xFF2196F3), // Mavi (Secondary)
+    tertiary = Color(0xFFFFFFFF),  // Beyaz (Tertiary)
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    // Arka plan ve yüzey renklerini beyaz yapalım
+    background = Color(0xFFF5F5F5), // Açık gri arka plan
+    surface = Color(0xFFFFFFFF), // Beyaz yüzey
+    onPrimary = Color.White, // Primary üzerindeki metin beyaz
+    onSecondary = Color.White, // Secondary üzerindeki metin beyaz
+    onTertiary = Color.Black, // Tertiary üzerindeki metin siyah
+    onBackground = Color.Black, // Arka plandaki metin siyah
+    onSurface = Color.Black // Yüzeydeki metin siyah
 )
+
+// Koyu mod renk paleti
+private val DarkColorScheme = darkColorScheme(
+    primary = Color(0xFF388E3C), // Koyu Yeşil (Primary)
+    secondary = Color(0xFF1976D2), // Koyu Mavi (Secondary)
+    tertiary = Color(0xFFFFFFFF), // Beyaz (Tertiary)
+
+    // Koyu modda arka plan ve yüzeyler koyu olacak
+    background = Color(0xFF121212), // Koyu arka plan
+    surface = Color(0xFF121212), // Koyu yüzey
+    onPrimary = Color.Black, // Primary üzerindeki metin siyah
+    onSecondary = Color.White, // Secondary üzerindeki metin beyaz
+    onTertiary = Color.Black, // Tertiary üzerindeki metin siyah
+    onBackground = Color.White, // Arka plandaki metin beyaz
+    onSurface = Color.White // Yüzeydeki metin beyaz
+)
+
 
 @Composable
 fun JotterTheme(
