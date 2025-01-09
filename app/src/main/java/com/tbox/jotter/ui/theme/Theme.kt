@@ -12,15 +12,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 
-// Yeşil, Mavi ve Beyaz tonlarıyla özelleştirilmiş renk paletleri
+
 
 // Açık mod renk paleti
 private val LightColorScheme = lightColorScheme(
     primary = Color(0xFF4CAF50),  // Yeşil (Primary)
     secondary = Color(0xFF2196F3), // Mavi (Secondary)
     tertiary = Color(0xFFFFFFFF),  // Beyaz (Tertiary)
-
-    // Arka plan ve yüzey renklerini beyaz yapalım
     background = Color(0xFFF5F5F5), // Açık gri arka plan
     surface = Color(0xFFFFFFFF), // Beyaz yüzey
     onPrimary = Color.White, // Primary üzerindeki metin beyaz
@@ -35,8 +33,6 @@ private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFF388E3C), // Koyu Yeşil (Primary)
     secondary = Color(0xFF1976D2), // Koyu Mavi (Secondary)
     tertiary = Color(0xFFFFFFFF), // Beyaz (Tertiary)
-
-    // Koyu modda arka plan ve yüzeyler koyu olacak
     background = Color(0xFF121212), // Koyu arka plan
     surface = Color(0xFF121212), // Koyu yüzey
     onPrimary = Color.Black, // Primary üzerindeki metin siyah

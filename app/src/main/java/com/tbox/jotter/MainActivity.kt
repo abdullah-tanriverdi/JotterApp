@@ -41,37 +41,15 @@ class MainActivity : ComponentActivity() {
 
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     isDarkTheme: Boolean,
-    onThemeChange: () -> Unit // Tema değiştirme işlevi ana ekrana iletiliyor
+    onThemeChange: () -> Unit
 ) {
 
     Scaffold (
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(text = "Jotter", style = MaterialTheme.typography.titleLarge)
-
-                },
-                actions = {
-                    IconButton(onClick = {
-                        onThemeChange()
-                    }) {
-                        Icon(
-                            imageVector = if (isDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
-                            contentDescription = if (isDarkTheme) "Switch to Light Theme" else "Switch to Dark Theme",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary, // Arka plan rengi
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary, // Başlık rengi
-                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary // Aksiyon ikon rengi
-                )
-            )
+            TopBar(isDarkTheme = isDarkTheme , onThemeChange = onThemeChange)
         }
 
     ){  innerPadding->
@@ -80,7 +58,38 @@ fun MainScreen(
             text= "Welcome"
         ) }
 
-   
+
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TopBar(
+    isDarkTheme: Boolean,
+    onThemeChange: () -> Unit
+) {
+    TopAppBar(
+        title = {
+            Text(text= "Jotter", style = MaterialTheme.typography.titleLarge)
+        },
+        actions = {
+            IconButton(onClick = {onThemeChange()}) {
+                Icon(
+                    imageVector = if (isDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                    contentDescription = if (isDarkTheme) "Switch to Light Theme" else "Switch to Dark Theme",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = MaterialTheme.colorScheme.onPrimary,
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+        )
+
+    )
+
 }
 
 
