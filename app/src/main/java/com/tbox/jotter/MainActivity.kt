@@ -28,16 +28,30 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val isDarkTheme = isDarkMode()
         setContent {
-            var isDarkTheme by remember { mutableStateOf(false) }
-            JotterTheme (darkTheme = isDarkTheme){
-                MainScreen(isDarkTheme){
-                    isDarkTheme = !isDarkTheme}
+
+            var themeState by remember { mutableStateOf(isDarkTheme) }
+
+            JotterTheme (darkTheme = themeState){
+                MainScreen(
+                    isDarkTheme = themeState,
+                    onThemeChange = { themeState=!themeState }
+                )
                 }
 
             }
         }
+
+    private fun isDarkMode(): Boolean {
+        val uiMode = resources.configuration.uiMode
+        return uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK == android.content.res.Configuration.UI_MODE_NIGHT_YES
     }
+}
+
+
+
+
 
 
 
