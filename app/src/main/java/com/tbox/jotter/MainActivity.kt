@@ -9,9 +9,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.BottomAppBar
@@ -29,7 +28,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -80,16 +78,7 @@ class MainActivity : ComponentActivity() {
 
 
 
-@Composable
-fun MainScreen(
-    navController: NavController,
-    innerPadding: PaddingValues
-) {
-    Text(
-        modifier = Modifier.padding(innerPadding),
-        text = "Welcome to Jotter App"
-    )
-}
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -123,6 +112,10 @@ fun BottomBar(navController: NavController) {
         IconButton(onClick = { navController.navigate("settings") }, modifier = Modifier.weight(1f, true)) {
             Icon(Icons.Filled.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.primary)
         }
+
+        IconButton(onClick =  { navController.navigate("home")}, modifier = Modifier.weight(1f,true)){
+            Icon(Icons.Default.Home, contentDescription = "Home", tint= MaterialTheme.colorScheme.primary)
+        }
         IconButton(onClick = { navController.navigate("profile") }, modifier = Modifier.weight(1f, true)) {
             Icon(Icons.Filled.AccountCircle, contentDescription = "Profile", tint = MaterialTheme.colorScheme.primary)
         }
@@ -130,6 +123,16 @@ fun BottomBar(navController: NavController) {
 }
 
 
+@Composable
+fun MainScreen(
+    navController: NavController,
+    innerPadding: PaddingValues
+) {
+    Text(
+        modifier = Modifier.padding(innerPadding),
+        text = "Welcome to Jotter App"
+    )
+}
 
 @Composable
 fun SettingsScreen(
