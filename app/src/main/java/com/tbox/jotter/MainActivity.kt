@@ -5,23 +5,36 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GridGoldenratio
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -30,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -139,6 +153,8 @@ fun MainScreen(
     navController: NavController,
     innerPadding: PaddingValues
 ) {
+    var expanded by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopBar(isDarkTheme = true, onThemeChange = {})
@@ -147,25 +163,69 @@ fun MainScreen(
             BottomBar(navController = navController)
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    // FAB tıklama aksiyonunu buraya yazabilirsiniz
-                    println("FAB clicked!")
-                },
-                modifier = Modifier.padding(bottom = 6.dp, end = 6.dp) ,
-                containerColor = MaterialTheme.colorScheme.primary
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.BottomEnd
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "Add")
+                FloatingActionButton(
+                    onClick = { expanded = !expanded },
+                    modifier = Modifier.padding(16.dp),
+                    containerColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Icon(
+                        imageVector = if (expanded) Icons.Filled.Close else Icons.Filled.Add,
+                        contentDescription = "Expand FAB"
+                    )
+                }
+
+                if (expanded) {
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier
+                            .padding(end = 16.dp, bottom = 80.dp) // Daha düzgün hizalama için padding eklendi
+                    ) {
+                        SmallFloatingActionButton(
+                            onClick = {
+                                println("Seçenek 1 seçildi")
+                                expanded = false
+                            },
+                            containerColor = MaterialTheme.colorScheme.secondary
+                        ) {
+                            Icon(Icons.Filled.Edit, contentDescription = "Seçenek 1")
+                        }
+
+                        SmallFloatingActionButton(
+                            onClick = {
+                                println("Seçenek 2 seçildi")
+                                expanded = false
+                            },
+                            containerColor = MaterialTheme.colorScheme.secondary
+                        ) {
+                            Icon(Icons.Filled.Share, contentDescription = "Seçenek 2")
+                        }
+
+                        SmallFloatingActionButton(
+                            onClick = {
+                                println("Seçenek 3 seçildi")
+                                expanded = false
+                            },
+                            containerColor = MaterialTheme.colorScheme.secondary
+                        ) {
+                            Icon(Icons.Filled.Delete, contentDescription = "Seçenek 3")
+                        }
+                    }
+                }
             }
         }
     ) { innerPadding ->
-        // Ekran içeriği
         Text(
             modifier = Modifier.padding(innerPadding),
             text = "Welcome to Jotter App"
         )
     }
 }
+
 
 
 @Composable
