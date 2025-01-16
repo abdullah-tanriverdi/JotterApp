@@ -13,7 +13,11 @@ import com.tbox.jotter.signup.SignUpScreen
 
 @Composable
 fun AppNavigation(navController: NavHostController, isDarkTheme: Boolean, onThemeChange: () -> Unit, innerPadding: PaddingValues, authViewModel: AuthViewModel, modifier: Modifier = Modifier) {
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(navController = navController, startDestination = "splash") {
+
+        composable("splash"){
+            SplashScreen(navController = navController, authViewModel = authViewModel)
+        }
 
         composable("login"){
             LoginScreen(navController = navController, authViewModel = AuthViewModel())

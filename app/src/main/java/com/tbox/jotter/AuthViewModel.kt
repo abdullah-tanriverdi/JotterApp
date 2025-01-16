@@ -27,7 +27,7 @@ class AuthViewModel(): ViewModel() {
         }else if(user.isEmailVerified){
             _authState.value = AuthState.Authenicated
         }else {
-
+            _authState.value = AuthState.Unauthenticated
         }
     }
 

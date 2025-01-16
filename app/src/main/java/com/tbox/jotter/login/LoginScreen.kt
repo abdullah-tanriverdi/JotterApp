@@ -267,9 +267,7 @@ fun LoginButtonLogin(authState : State<AuthViewModel.AuthState?>, email: String,
                 }
                 else -> {
                     authViewModel.login(email , password)
-                    navController.navigate("home") {
-                        popUpTo("login") { inclusive= true }
-                    }
+
 
                 }
 
@@ -293,8 +291,25 @@ fun LoginButtonLogin(authState : State<AuthViewModel.AuthState?>, email: String,
             )
         }
     }
-}
 
+    LaunchedEffect(authState.value) {
+        when (authState.value) {
+            is AuthViewModel.AuthState.Authenicated -> {
+                navController.navigate("home") {
+                    popUpTo("login") { inclusive = true }
+                }
+            }
+
+            is AuthViewModel.AuthState.Error -> {
+                val errorMessage = (authState.value as AuthViewModel.AuthState.Error).message
+                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+            }
+
+            else -> {
+                // Diğer durumlar (Loading, Unauthenticated vs.)
+            }
+        }
+    }}
 
 @Composable
 fun SignUpRouteButtonLogin(navController: NavController) {
