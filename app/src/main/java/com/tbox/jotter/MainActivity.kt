@@ -1,6 +1,6 @@
 package com.tbox.jotter
 
-
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -39,15 +39,8 @@ class MainActivity : ComponentActivity() {
 
             JotterTheme(darkTheme = themeState) {
                 val navController = rememberNavController()
-                Scaffold(
-                    topBar = {
-                        TopBar()
-                    },
-                    bottomBar = {
-                        BottomBar(navController = navController)
-                    }
-                ) { innerPadding ->
-                    AppNavigation(navController = navController, isDarkTheme = themeState, onThemeChange = { themeState = !themeState }, innerPadding = innerPadding)
+                Scaffold { innerPadding ->
+                    AppNavigation(navController = navController, isDarkTheme = themeState, onThemeChange = { themeState = !themeState }, innerPadding = innerPadding, authViewModel = AuthViewModel(), modifier = Modifier)
                 }
             }
         }
