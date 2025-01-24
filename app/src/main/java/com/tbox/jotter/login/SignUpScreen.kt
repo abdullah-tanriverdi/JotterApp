@@ -4,7 +4,6 @@ package com.tbox.jotter.signup
 import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.tbox.jotter.AuthViewModel
+import com.tbox.jotter.auth.AuthViewModel
 
 
 
@@ -217,10 +216,10 @@ fun PasswordInputFieldSignUp(password: String, onValueChange: (String) -> Unit) 
 
 @Composable
 fun SignUpButtonSignUp (
-    email : String ,
-    password : String ,
-    authViewModel : AuthViewModel ,
-    authState: State<AuthViewModel.AuthState?> ,
+    email : String,
+    password : String,
+    authViewModel : AuthViewModel,
+    authState: State<AuthViewModel.AuthState?>,
     navController: NavController,
 ) {
 

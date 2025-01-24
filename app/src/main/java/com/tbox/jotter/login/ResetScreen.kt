@@ -44,12 +44,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.isPopupLayout
 import androidx.navigation.NavController
-import com.tbox.jotter.AuthViewModel
+import com.tbox.jotter.auth.AuthViewModel
 import com.tbox.jotter.signup.isValidEmail
 
 
@@ -187,7 +185,7 @@ fun EmailInputFieldReset(email: String, onValueChange: (String) -> Unit) {
 }
 
 @Composable
-fun ResetButtonReset(email: String , authViewModel: AuthViewModel, authState: State<AuthViewModel.AuthState?>, navController: NavController){
+fun ResetButtonReset(email: String, authViewModel: AuthViewModel, authState: State<AuthViewModel.AuthState?>, navController: NavController){
     val context = LocalContext.current
 
     Button(

@@ -1,4 +1,4 @@
-package com.tbox.jotter
+package com.tbox.jotter.auth
 
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks.forException

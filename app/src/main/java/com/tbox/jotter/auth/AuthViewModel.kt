@@ -1,4 +1,4 @@
-package com.tbox.jotter
+package com.tbox.jotter.auth
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
