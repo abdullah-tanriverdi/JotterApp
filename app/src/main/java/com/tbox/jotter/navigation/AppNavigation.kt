@@ -4,9 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.google.firebase.auth.FirebaseAuth
+import com.tbox.jotter.AddNoteScreen
 import com.tbox.jotter.auth.AuthViewModel
 import com.tbox.jotter.home.HomeScreen
 import com.tbox.jotter.SettingScreen
+import com.tbox.jotter.SimpleNoteScreen
 import com.tbox.jotter.graph.GraphScreen
 
 import com.tbox.jotter.splash.SplashScreen
@@ -37,7 +40,8 @@ fun AppNavigation(navController: NavHostController, authViewModel: AuthViewModel
         }
 
         composable("home"){
-            HomeScreen(navController= navController)
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            HomeScreen(navController= navController, uid = currentUser?.uid ?: "")
 
         }
 
@@ -52,6 +56,17 @@ fun AppNavigation(navController: NavHostController, authViewModel: AuthViewModel
         composable("graph"){
             GraphScreen(navController= navController)
         }
+
+        composable("addNote") {
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            AddNoteScreen(navController = navController, uid = currentUser?.uid ?: "")
+        }
+
+        composable("simpleNotes") {
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            SimpleNoteScreen(navController = navController, uid = currentUser?.uid ?: "")
+        }
+
 
 
 
