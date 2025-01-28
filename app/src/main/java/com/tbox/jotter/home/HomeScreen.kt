@@ -5,37 +5,29 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-
 import androidx.compose.foundation.lazy.LazyRow
-
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GridGoldenratio
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.VideoCall
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,12 +36,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,9 +50,16 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun HomeScreen(navController: NavController, uid: String) {
+fun HomeScreen(navController: NavController) {
+
+
+    // Arama  sorgusu için durum (state)
     var searchQuery by remember { mutableStateOf("") }
+
+    //Geçerli rota bilgisi saklama (bottom bar)
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+
+    //FAB genişleme durumu
     var expanded by remember { mutableStateOf(false) }
 
 
@@ -71,15 +67,18 @@ fun HomeScreen(navController: NavController, uid: String) {
 
 
     Scaffold(
+        //BottomBar
       bottomBar = {
           BottomAppBar {
 
+              //İkonların seçili olup olmadığına göre renk belirleme
               val homeIconTint = if (currentRoute == "home") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
               val settingIconTint = if (currentRoute == "setting") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
               val profileIconTint = if (currentRoute == "profile") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
               val graphIconTint = if (currentRoute == "graph") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
 
 
+                //Home Butonu
               IconButton(onClick = { navController.navigate("home") }, modifier = Modifier.weight(1f, true)) {
                   Column(horizontalAlignment = Alignment.CenterHorizontally) {
                       Icon(Icons.Default.Home, contentDescription = "Home", tint = homeIconTint)
@@ -88,6 +87,7 @@ fun HomeScreen(navController: NavController, uid: String) {
               }
 
 
+                //Settings Butonu
               IconButton(onClick = { navController.navigate("setting") }, modifier = Modifier.weight(1f, true)) {
                   Column(horizontalAlignment = Alignment.CenterHorizontally) {
                       Icon(Icons.Filled.Settings, contentDescription = "Setting", tint = settingIconTint)
@@ -96,6 +96,7 @@ fun HomeScreen(navController: NavController, uid: String) {
               }
 
 
+                //Profil Butonu
               IconButton(onClick = { navController.navigate("profile") }, modifier = Modifier.weight(1f, true)) {
                   Column(horizontalAlignment = Alignment.CenterHorizontally) {
                       Icon(Icons.Filled.AccountCircle, contentDescription = "Profile", tint = profileIconTint)
@@ -103,7 +104,7 @@ fun HomeScreen(navController: NavController, uid: String) {
                   }
               }
 
-
+                //Graph Butonu
               IconButton(onClick = { navController.navigate("graph") }, modifier = Modifier.weight(1f, true)) {
                   Column(horizontalAlignment = Alignment.CenterHorizontally) {
                       Icon(Icons.Filled.GridGoldenratio, contentDescription = "Graph", tint = graphIconTint)
@@ -113,11 +114,13 @@ fun HomeScreen(navController: NavController, uid: String) {
 
           }
       },
+        //FAB tanımı
       floatingActionButton = {
           Box(
               modifier = Modifier.fillMaxSize(),
               contentAlignment = Alignment.BottomEnd
           ){
+              //Ana FAB
               FloatingActionButton(
                   onClick = { expanded = !expanded },
                   modifier = Modifier.padding(16.dp),
@@ -129,6 +132,7 @@ fun HomeScreen(navController: NavController, uid: String) {
                   )
               }
 
+              //FAB genişletiltiğinde küçük FAB butonları
               if (expanded) {
                   Column(
                       horizontalAlignment = Alignment.End,
@@ -136,6 +140,7 @@ fun HomeScreen(navController: NavController, uid: String) {
                       modifier = Modifier
                           .padding(end = 16.dp, bottom = 80.dp)
                   ) {
+                      // Yeni Not Ekleme Butonu
                       SmallFloatingActionButton(
                           onClick = {
                               expanded = false
@@ -147,9 +152,11 @@ fun HomeScreen(navController: NavController, uid: String) {
                           Icon(Icons.Filled.Edit, contentDescription = "Add Note")
                       }
 
+
+                      //Sesli Not Ekleme Butonu
                       SmallFloatingActionButton(
                           onClick = {
-                              println("Seçenek 2 seçildi")
+
                               expanded = false
                           },
                           containerColor = MaterialTheme.colorScheme.secondary
@@ -157,9 +164,10 @@ fun HomeScreen(navController: NavController, uid: String) {
                           Icon(Icons.Filled.RecordVoiceOver, contentDescription = "Voice Note")
                       }
 
+
+                      //Video Not Ekleme Butonu
                       SmallFloatingActionButton(
                           onClick = {
-                              println("Seçenek 3 seçildi")
                               expanded = false
                           },
                           containerColor = MaterialTheme.colorScheme.secondary
@@ -171,12 +179,15 @@ fun HomeScreen(navController: NavController, uid: String) {
 
           }
       },
+
+        //Ana içerik
       content = {  paddingValues ->
           Column(modifier = Modifier
               .padding(16.dp)
               .fillMaxSize()
           ) {
 
+              //Arama Kutusu
               OutlinedTextField(
                   value = searchQuery,
                   onValueChange = { searchQuery = it },
@@ -194,12 +205,16 @@ fun HomeScreen(navController: NavController, uid: String) {
                   shape = RoundedCornerShape(16.dp)
               )
 
-              Spacer(modifier = Modifier.height(20.dp)) // Arama kutusunun altındaki boşluk
-              Text("Your Notes", style = MaterialTheme.typography.titleLarge)
+              Spacer(modifier = Modifier.height(20.dp))
+
+              Text("Jotter Notes", style = MaterialTheme.typography.titleLarge)
+
+              //Not kartlarını listeleyen yatay liste
               LazyRow(
                   horizontalArrangement = Arrangement.spacedBy(16.dp),
                   modifier = Modifier.fillMaxWidth().padding(top = 20.dp)
               ) {
+                  //Simple Note Kartı
                   item {
                       Card(
                           modifier = Modifier
@@ -284,6 +299,7 @@ fun HomeScreen(navController: NavController, uid: String) {
                       }
                   }
               }
+              
 
 
 

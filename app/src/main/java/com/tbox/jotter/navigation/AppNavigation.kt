@@ -41,7 +41,7 @@ fun AppNavigation(navController: NavHostController, authViewModel: AuthViewModel
 
         composable("home"){
             val currentUser = FirebaseAuth.getInstance().currentUser
-            HomeScreen(navController= navController, uid = currentUser?.uid ?: "")
+            HomeScreen(navController= navController)
 
         }
 
