@@ -1,21 +1,31 @@
 package com.tbox.jotter.home
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GridGoldenratio
@@ -26,11 +36,15 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VideoCall
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
@@ -40,11 +54,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.sourceInformationMarkerEnd
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+
 
 
 
@@ -61,6 +81,8 @@ fun HomeScreen(navController: NavController) {
 
     //FAB genişleme durumu
     var expanded by remember { mutableStateOf(false) }
+
+
 
 
 
@@ -114,21 +136,26 @@ fun HomeScreen(navController: NavController) {
 
           }
       },
+
         //FAB tanımı
       floatingActionButton = {
           Box(
               modifier = Modifier.fillMaxSize(),
               contentAlignment = Alignment.BottomEnd
+
           ){
+              val rotation by animateFloatAsState(if(expanded) 45f else 0f)
+
               //Ana FAB
               FloatingActionButton(
                   onClick = { expanded = !expanded },
-                  modifier = Modifier.padding(16.dp),
+                  modifier = Modifier.padding(end = 16.dp),
                   containerColor = MaterialTheme.colorScheme.primary
               ){
                   Icon(
                       imageVector = if (expanded) Icons.Filled.Close else Icons.Filled.Add,
-                      contentDescription = "Expanded FAB"
+                      contentDescription = "Expanded FAB",
+                      modifier = Modifier.rotate(rotation)
                   )
               }
 
@@ -145,7 +172,7 @@ fun HomeScreen(navController: NavController) {
                           onClick = {
                               expanded = false
                               navController.navigate("addNote")
-                              
+
                           },
                           containerColor = MaterialTheme.colorScheme.secondary
                       ) {
@@ -178,6 +205,7 @@ fun HomeScreen(navController: NavController) {
               }
 
           }
+
       },
 
         //Ana içerik
@@ -185,121 +213,146 @@ fun HomeScreen(navController: NavController) {
           Column(modifier = Modifier
               .padding(16.dp)
               .fillMaxSize()
+
           ) {
 
-              //Arama Kutusu
-              OutlinedTextField(
-                  value = searchQuery,
-                  onValueChange = { searchQuery = it },
-                  label = { Text("Search Notes") },
+
+                  // Arama Kutusu
+                  OutlinedTextField(
+                      value = searchQuery,
+                      onValueChange = { searchQuery = it },
+                      label = { Text("Search Notes") },
+                      modifier = Modifier
+                          .fillMaxWidth()
+                          .padding(top = 40.dp),
+                      singleLine = true,
+                      leadingIcon = {
+                          Icon(
+                              imageVector = Icons.Default.Search,
+                              contentDescription = "Search Icon",
+                          )
+                      },
+                      shape = RoundedCornerShape(16.dp)
+                  )
+
+
+
+
+                  Spacer(modifier = Modifier.height(20.dp))
+
+              Button(
+                  onClick = { println("Meet New Assistant clicked") },
                   modifier = Modifier
-                      .fillMaxWidth()
-                      .padding(top = 40.dp),
-                  singleLine = true,
-                  leadingIcon = {
-                      Icon(
-                          imageVector = Icons.Default.Search,
-                          contentDescription = "Search Icon",
-                      )
-                  },
-                  shape = RoundedCornerShape(16.dp)
-              )
+                      .fillMaxWidth(),
+              ) {
+                  // Add the chatbot icon to the button
+                  Icon(
+                      imageVector = Icons.Filled.Chat,
+                      contentDescription = "Chatbot Icon",
+                      modifier = Modifier.padding(end = 8.dp) // Adds space between the icon and text
+                  )
+                  Text(text = "Meet New Assistant", style = MaterialTheme.typography.bodyLarge)
+              }
+
+
+
 
               Spacer(modifier = Modifier.height(20.dp))
+                //Not kartlarını listeleyen yatay liste
+                  LazyRow(
+                      horizontalArrangement = Arrangement.spacedBy(16.dp),
+                      modifier = Modifier.fillMaxWidth().padding(top = 20.dp).height(450.dp)
+                  ) {
 
-              Text("Jotter Notes", style = MaterialTheme.typography.titleLarge)
 
-              //Not kartlarını listeleyen yatay liste
-              LazyRow(
-                  horizontalArrangement = Arrangement.spacedBy(16.dp),
-                  modifier = Modifier.fillMaxWidth().padding(top = 20.dp)
-              ) {
-                  //Simple Note Kartı
-                  item {
-                      Card(
-                          modifier = Modifier
-                              .width(160.dp)
-                              .clickable { navController.navigate("simpleNotes") },
-                          shape = RoundedCornerShape(16.dp),
-
-                      ) {
-                          Column(
+                      //Simple Note Kartı
+                      item {
+                          Card(
                               modifier = Modifier
-                                  .fillMaxSize()
-                                  .padding(16.dp),
-                              horizontalAlignment = Alignment.CenterHorizontally,
-                              verticalArrangement = Arrangement.Center
-                          ) {
-                              Icon(Icons.Filled.Edit, contentDescription = "Simple Notes", tint = MaterialTheme.colorScheme.primary)
-                              Text("Simple Notes", style = MaterialTheme.typography.bodyLarge)
+                                  .width(160.dp)
+                                  .clickable { navController.navigate("simpleNotes") },
+                              shape = RoundedCornerShape(16.dp),
+
+                              ) {
+                              Column(
+                                  modifier = Modifier
+                                      .fillMaxSize()
+                                      .padding(16.dp),
+                                  horizontalAlignment = Alignment.CenterHorizontally,
+                                  verticalArrangement = Arrangement.Center
+                              ) {
+                                  Icon(Icons.Filled.Edit, contentDescription = "Simple Notes", tint = MaterialTheme.colorScheme.primary)
+                                  Text("Simple Notes", style = MaterialTheme.typography.bodyLarge)
+                              }
+                          }
+                      }
+
+                      item {
+                          Card(
+                              modifier = Modifier
+                                  .width(160.dp)
+                                  .clickable { println("Voice Notes clicked") },
+                              shape = RoundedCornerShape(16.dp),
+
+                              ) {
+                              Column(
+                                  modifier = Modifier
+                                      .fillMaxSize()
+                                      .padding(16.dp),
+                                  horizontalAlignment = Alignment.CenterHorizontally,
+                                  verticalArrangement = Arrangement.Center
+                              ) {
+                                  Icon(Icons.Filled.RecordVoiceOver, contentDescription = "Voice Notes", tint = MaterialTheme.colorScheme.primary)
+                                  Text("Voice Notes", style = MaterialTheme.typography.bodyLarge)
+                              }
+                          }
+                      }
+
+                      item {
+                          Card(
+                              modifier = Modifier
+                                  .width(160.dp)
+                                  .clickable { println("Video Notes clicked") },
+                              shape = RoundedCornerShape(16.dp),
+
+                              ) {
+                              Column(
+                                  modifier = Modifier
+                                      .fillMaxSize()
+                                      .padding(16.dp),
+                                  horizontalAlignment = Alignment.CenterHorizontally,
+                                  verticalArrangement = Arrangement.Center
+                              ) {
+                                  Icon(Icons.Filled.VideoCall, contentDescription = "Video Notes", tint = MaterialTheme.colorScheme.primary)
+                                  Text("Video Notes", style = MaterialTheme.typography.bodyLarge)
+                              }
+                          }
+                      }
+
+                      item {
+                          Card(
+                              modifier = Modifier
+                                  .width(160.dp)
+                                  .clickable { println("Secret Notes clicked") },
+                              shape = RoundedCornerShape(16.dp),
+
+                              ) {
+                              Column(
+                                  modifier = Modifier
+                                      .fillMaxSize()
+                                      .padding(16.dp),
+                                  horizontalAlignment = Alignment.CenterHorizontally,
+                                  verticalArrangement = Arrangement.Center
+                              ) {
+                                  Icon(Icons.Filled.Lock, contentDescription = "Secret Notes", tint = MaterialTheme.colorScheme.primary)
+                                  Text("Secret Notes", style = MaterialTheme.typography.bodyLarge)
+                              }
                           }
                       }
                   }
 
-                  item {
-                      Card(
-                          modifier = Modifier
-                              .width(160.dp)
-                              .clickable { println("Voice Notes clicked") },
-                          shape = RoundedCornerShape(16.dp),
 
-                      ) {
-                          Column(
-                              modifier = Modifier
-                                  .fillMaxSize()
-                                  .padding(16.dp),
-                              horizontalAlignment = Alignment.CenterHorizontally,
-                              verticalArrangement = Arrangement.Center
-                          ) {
-                              Icon(Icons.Filled.RecordVoiceOver, contentDescription = "Voice Notes", tint = MaterialTheme.colorScheme.primary)
-                              Text("Voice Notes", style = MaterialTheme.typography.bodyLarge)
-                          }
-                      }
-                  }
 
-                  item {
-                      Card(
-                          modifier = Modifier
-                              .width(160.dp)
-                              .clickable { println("Video Notes clicked") },
-                          shape = RoundedCornerShape(16.dp),
-
-                      ) {
-                          Column(
-                              modifier = Modifier
-                                  .fillMaxSize()
-                                  .padding(16.dp),
-                              horizontalAlignment = Alignment.CenterHorizontally,
-                              verticalArrangement = Arrangement.Center
-                          ) {
-                              Icon(Icons.Filled.VideoCall, contentDescription = "Video Notes", tint = MaterialTheme.colorScheme.primary)
-                              Text("Video Notes", style = MaterialTheme.typography.bodyLarge)
-                          }
-                      }
-                  }
-
-                  item {
-                      Card(
-                          modifier = Modifier
-                              .width(160.dp)
-                              .clickable { println("Secret Notes clicked") },
-                          shape = RoundedCornerShape(16.dp),
-
-                      ) {
-                          Column(
-                              modifier = Modifier
-                                  .fillMaxSize()
-                                  .padding(16.dp),
-                              horizontalAlignment = Alignment.CenterHorizontally,
-                              verticalArrangement = Arrangement.Center
-                          ) {
-                              Icon(Icons.Filled.Lock, contentDescription = "Secret Notes", tint = MaterialTheme.colorScheme.primary)
-                              Text("Secret Notes", style = MaterialTheme.typography.bodyLarge)
-                          }
-                      }
-                  }
-              }
-              
 
 
 
