@@ -5,11 +5,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.google.firebase.auth.FirebaseAuth
-import com.tbox.jotter.AddNoteScreen
+import com.tbox.jotter.home.AddNoteScreen
 import com.tbox.jotter.auth.AuthViewModel
 import com.tbox.jotter.home.HomeScreen
-import com.tbox.jotter.SettingScreen
-import com.tbox.jotter.SimpleNoteScreen
+import com.tbox.jotter.setting.SettingScreen
+import com.tbox.jotter.home.SimpleNoteScreen
 import com.tbox.jotter.graph.GraphScreen
 
 import com.tbox.jotter.splash.SplashScreen

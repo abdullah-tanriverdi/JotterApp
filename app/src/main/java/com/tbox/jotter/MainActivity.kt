@@ -23,7 +23,8 @@ class MainActivity : ComponentActivity() {
 
             JotterTheme() {
                 val navController = rememberNavController()
-                AppNavigation(navController = navController, authViewModel = AuthViewModel())
+               AppNavigation(navController = navController, authViewModel = AuthViewModel())
+
 
             }
         }

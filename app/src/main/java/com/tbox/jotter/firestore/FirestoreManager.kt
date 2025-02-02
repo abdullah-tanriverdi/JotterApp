@@ -1,16 +1,17 @@
-package com.tbox.jotter
+package com.tbox.jotter.firestore
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.tbox.jotter.auth.AuthViewModel
 
 
 fun addNoteToFirestore(
-  uid : String,
-  title: String,
-  content: String,
-  type: String,
-  onSuccess: () -> Unit,
-  onFailure: (Exception) -> Unit
+    uid: String,
+    title: String,
+    content: String,
+    type: String,
+    tag: String?,
+    timestamp: String,
+    onSuccess: () -> Unit,
+    onFailure: (Exception) -> Unit
 ){
 
     val firestore = FirebaseFirestore.getInstance()
@@ -18,8 +19,13 @@ fun addNoteToFirestore(
         "title" to title,
         "content" to content,
         "timestamp" to System.currentTimeMillis(),
-        "type" to type
+        "type" to type,
+        "timestamp" to timestamp
+
     )
+    tag?.let {
+        noteData["tag"] = it
+    }
 
 
     firestore.collection("notes")

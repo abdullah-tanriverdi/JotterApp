@@ -1,6 +1,5 @@
-package com.tbox.jotter
+package com.tbox.jotter.home
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.tbox.jotter.firestore.fetchNotesFromFirestore
 
 @Composable
 fun SimpleNoteScreen(navController: NavController, uid: String) {
@@ -55,6 +55,8 @@ fun SimpleNoteScreen(navController: NavController, uid: String) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text("Title: ${note["title"]}")
                         Text("Content: ${note["content"]}")
+                        Text("Tag: ${note["tag"]}")
+                        Text("Time: $${note["timestamp"]}")
                     }
                 }
             }
