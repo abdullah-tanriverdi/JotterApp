@@ -92,3 +92,31 @@ fun fetchNoteDetailFromFirestore(
             onFailure(exception)
         }
 }
+
+
+
+fun updateNoteInFirestore(
+    uid: String,
+    noteId: String,
+    title: String,
+    content: String,
+    timestamp: String,
+    onSuccess: () -> Unit,
+    onFailure: (Exception) -> Unit
+) {
+    val firestore = FirebaseFirestore.getInstance()
+    val noteData = hashMapOf(
+        "title" to title,
+        "content" to content,
+        "timestamp" to timestamp
+    )
+
+    firestore.collection("simple_notes")
+        .document(uid)
+        .collection("user_simple_notes")
+        .document(noteId)
+        .update(noteData as Map<String, Any>)
+        .addOnSuccessListener { onSuccess() }
+        .addOnFailureListener { exception -> onFailure(exception) }
+}
+

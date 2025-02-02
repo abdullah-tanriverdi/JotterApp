@@ -51,6 +51,8 @@ import java.util.Locale
 @Composable
 fun SimpleNoteScreen(navController: NavController, uid: String) {
     var notes by remember { mutableStateOf<List<Map<String, String>>>(emptyList()) }
+    var filteredNotes by remember { mutableStateOf<List<Map<String, String>>>(emptyList()) }
+    var selectedTag by remember { mutableStateOf<String?>(null) }
 
     var showSortMenu by remember { mutableStateOf(false) }
     var isDescending by remember { mutableStateOf(true) }
@@ -63,7 +65,7 @@ fun SimpleNoteScreen(navController: NavController, uid: String) {
                 notes = fetchedNotes
                     .filter { it["timestamp" ] != null }
                     .sortedByDescending { it["timestamp"]!!.toString() } as List<Map<String, String>>
-
+                filteredNotes = notes
             },
             onFailure = { exception ->
                 println("Error fetching notes: ${exception.message}")
@@ -72,7 +74,14 @@ fun SimpleNoteScreen(navController: NavController, uid: String) {
     }
 
 
-
+    fun onTagClick(tag: String) {
+        selectedTag = tag
+        filteredNotes = if (selectedTag != null) {
+            notes.filter { it["tag"] == selectedTag } // Seçilen tag'e sahip olanları filtrele
+        } else {
+            notes // Tüm notları göster
+        }
+    }
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Simple Notes", color = MaterialTheme.colorScheme.onPrimary) },
@@ -83,33 +92,36 @@ fun SimpleNoteScreen(navController: NavController, uid: String) {
                 },
                 actions = {
 
-                    Box{
-                        IconButton(onClick = { showSortMenu = true }) {
-                            Icon(Icons.Filled.FilterList, contentDescription = "Filter", tint = MaterialTheme.colorScheme.onPrimary)
+
+                        Box{
+                            IconButton(onClick = { showSortMenu = true }) {
+                                Icon(Icons.Filled.FilterList, contentDescription = "Filter", tint = MaterialTheme.colorScheme.onPrimary)
+                            }
+                            DropdownMenu(
+                                expanded = showSortMenu,
+                                onDismissRequest = { showSortMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("En Eski") },
+                                    onClick = {
+                                        isDescending = false
+                                        notes = notes.sortedBy { it["timestamp"]!!.toString() } // Eskiden Yeniye
+                                        showSortMenu = false
+                                        filteredNotes = notes
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("En Yeni") },
+                                    onClick = {
+                                        isDescending = true
+                                        notes = notes.sortedByDescending { it["timestamp"]!!.toString() } // Yeniden Eskiye
+                                        showSortMenu = false
+                                        filteredNotes = notes
+                                    }
+                                )
+                            }
                         }
-                        DropdownMenu(
-                            expanded = showSortMenu,
-                            onDismissRequest = { showSortMenu = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("En Eski") },
-                                onClick = {
-                                    isDescending = false
-                                    notes = notes.sortedBy { it["timestamp"]!!.toString() } // Eskiden Yeniye
-                                    showSortMenu = false
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("En Yeni") },
-                                onClick = {
-                                    isDescending = true
-                                    notes = notes.sortedByDescending { it["timestamp"]!!.toString() } // Yeniden Eskiye
-                                    showSortMenu = false
-                                }
-                            )
-                        }
-                    }
-                },
+                    },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                 )
@@ -120,33 +132,42 @@ fun SimpleNoteScreen(navController: NavController, uid: String) {
         paddingValues ->
         Column(modifier = Modifier.padding(paddingValues).padding(16.dp)) {
 
-            if (notes.isEmpty()) {
+            // Eğer bir tag seçilmişse, bunu göster ve temizleme butonu ekle
+            selectedTag?.let {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Filtre: $it", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.weight(1f))
+                    AssistChip(
+                        label = { Text("Filtreyi Temizle") },
+                        onClick = { selectedTag = null
+                                  filteredNotes = notes},
+                        colors = AssistChipDefaults.assistChipColors(containerColor = MaterialTheme.colorScheme.error)
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
-
+            if (filteredNotes.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("No Notes Yet", style = MaterialTheme.typography.bodyLarge)
                 }
-
             } else {
                 LazyColumn {
-                    items(notes) { note ->
-                        NoteCard(note, navController)
-
+                    items(filteredNotes) { note ->
+                        NoteCard(note, navController, onTagClick = ::onTagClick)
                     }
                 }
-
-
-
-
-
             }
         }
     }
-
-
 }
+
+
 @Composable
-fun NoteCard(note: Map<String, String>, navController: NavController) {
+fun NoteCard(note: Map<String, String>, navController: NavController, onTagClick: (String) -> Unit) {
     val previewContent = note["content"]?.take(20)?.plus("...") ?: "No content available"
 
 
@@ -187,10 +208,11 @@ fun NoteCard(note: Map<String, String>, navController: NavController) {
 
             // Tag ve zaman etiketi
             Row(verticalAlignment = Alignment.CenterVertically) {
-                note["tag"]?.takeIf { it.isNotEmpty() }?.let {
+                note["tag"]?.takeIf { it.isNotEmpty() }?.let { tag ->
                     AssistChip(
-                        label = { Text(it) },
-                        onClick = {  // tag tıklama
+                        label = { Text(tag) },
+                        onClick = {  onTagClick(tag)
+                        // tag tıklama
                              },
                         colors = AssistChipDefaults.assistChipColors(containerColor = MaterialTheme.colorScheme.secondary)
                     )
@@ -199,6 +221,14 @@ fun NoteCard(note: Map<String, String>, navController: NavController) {
                 Text(text = note["timestamp"] ?: "No Date", style = MaterialTheme.typography.labelSmall)
             }
         }
+
+
+
     }
+
+
+
+
+
 }
 
