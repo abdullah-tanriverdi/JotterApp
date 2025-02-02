@@ -28,9 +28,9 @@ fun addNoteToFirestore(
     }
 
 
-    firestore.collection("notes")
+    firestore.collection("simple_notes")
         .document(uid)
-        .collection("user_notes")
+        .collection("user_simple_notes")
         .add(noteData)
         .addOnSuccessListener {
             onSuccess()
@@ -50,16 +50,45 @@ fun fetchNotesFromFirestore(
 ) {
     val firestore = FirebaseFirestore.getInstance()
 
-    firestore.collection("notes")
+    firestore.collection("simple_notes")
         .document(uid)
-        .collection("user_notes")
+        .collection("user_simple_notes")
         .whereEqualTo("type", "simple")
         .get()
         .addOnSuccessListener { documents ->
-            val notes = documents.map { it.data }
+            val notes = documents.map { document ->
+                // Burada her dokümanın documentId'sini alıyoruz ve map'e ekliyoruz
+                document.data + ("noteId" to document.id)
+            }
             onNotesFetched(notes)
         }
         .addOnFailureListener {
             onFailure(it)
+        }
+}
+
+fun fetchNoteDetailFromFirestore(
+    noteId: String,
+    uid: String,
+    onNoteFetched: (Map<String, String>) -> Unit,
+    onFailure: (Exception) -> Unit
+) {
+    val firestore = FirebaseFirestore.getInstance()
+
+    firestore.collection("simple_notes")
+        .document(uid)  // UID ile ilgili notları almak için
+        .collection("user_simple_notes")
+        .document(noteId)  // Notun id'si ile notu alıyoruz
+        .get()
+        .addOnSuccessListener { document ->
+            if (document.exists()) {
+                val noteData = document.data?.mapValues { it.value.toString() } ?: emptyMap()
+                onNoteFetched(noteData)
+            } else {
+                onFailure(Exception("Note not found"))
+            }
+        }
+        .addOnFailureListener { exception ->
+            onFailure(exception)
         }
 }

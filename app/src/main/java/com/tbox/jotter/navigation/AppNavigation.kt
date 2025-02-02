@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.google.firebase.auth.FirebaseAuth
+import com.tbox.jotter.NoteDetailScreen
 import com.tbox.jotter.home.AddNoteScreen
 import com.tbox.jotter.auth.AuthViewModel
 import com.tbox.jotter.home.HomeScreen
@@ -67,6 +68,13 @@ fun AppNavigation(navController: NavHostController, authViewModel: AuthViewModel
             SimpleNoteScreen(navController = navController, uid = currentUser?.uid ?: "")
         }
 
+
+        composable("noteDetail/{noteId}") { backStackEntry ->
+            val noteId = backStackEntry.arguments?.getString("noteId") ?: ""
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            val uid = currentUser?.uid ?: ""
+            NoteDetailScreen(noteId = noteId, uid = uid, navController = navController)
+        }
 
 
 
