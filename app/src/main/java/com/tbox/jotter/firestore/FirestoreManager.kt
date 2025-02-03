@@ -28,9 +28,9 @@ fun addNoteToFirestore(
     }
 
 
-    firestore.collection("simple_notes")
+    firestore.collection("users")
         .document(uid)
-        .collection("user_simple_notes")
+        .collection("simple_notes")
         .add(noteData)
         .addOnSuccessListener {
             onSuccess()
@@ -50,9 +50,9 @@ fun fetchNotesFromFirestore(
 ) {
     val firestore = FirebaseFirestore.getInstance()
 
-    firestore.collection("simple_notes")
+    firestore.collection("users")
         .document(uid)
-        .collection("user_simple_notes")
+        .collection("simple_notes")
         .whereEqualTo("type", "simple")
         .get()
         .addOnSuccessListener { documents ->
@@ -75,9 +75,9 @@ fun fetchNoteDetailFromFirestore(
 ) {
     val firestore = FirebaseFirestore.getInstance()
 
-    firestore.collection("simple_notes")
+    firestore.collection("users")
         .document(uid)  // UID ile ilgili notları almak için
-        .collection("user_simple_notes")
+        .collection("simple_notes")
         .document(noteId)  // Notun id'si ile notu alıyoruz
         .get()
         .addOnSuccessListener { document ->
@@ -111,12 +111,18 @@ fun updateNoteInFirestore(
         "timestamp" to timestamp
     )
 
-    firestore.collection("simple_notes")
+    firestore.collection("users")
         .document(uid)
-        .collection("user_simple_notes")
+        .collection("simple_notes")
         .document(noteId)
         .update(noteData as Map<String, Any>)
         .addOnSuccessListener { onSuccess() }
         .addOnFailureListener { exception -> onFailure(exception) }
 }
+
+
+
+
+
+
 

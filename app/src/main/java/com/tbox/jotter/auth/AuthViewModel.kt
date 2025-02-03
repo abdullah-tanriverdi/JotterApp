@@ -99,6 +99,9 @@ class AuthViewModel(): ViewModel() {
 
 
 
+
+
+
     sealed class AuthState {
         object Authenicated : AuthState()
         object Unauthenticated : AuthState()
