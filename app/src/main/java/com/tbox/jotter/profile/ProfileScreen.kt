@@ -42,6 +42,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,20 +67,42 @@ fun ProfileScreen(navController: NavController) {
 
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
-    var firstName by remember { mutableStateOf("Name") }
-    var lastName by remember { mutableStateOf("Surname") }
-    var phoneNumber by remember { mutableStateOf("05462640611") }
-    var email by remember { mutableStateOf("example@example.com") }
-    var bio by remember { mutableStateOf("Bio") }
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+    var phoneNumber by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var bio by remember { mutableStateOf("") }
 
     val firestore = Firebase.firestore
     var showMenu by remember { mutableStateOf(false) }
     var profileImage by remember { mutableStateOf(R.drawable.jotter_unbackground) }
-
+val auth = Firebase.auth
     var isEditing by remember { mutableStateOf(false) }
 
 
-    fun saveUserData(uid: String, firstName: String, lastName: String, email: String, phoneNumber: String, bio: String){
+    val userId = auth.currentUser?.uid
+    fun loadUserData(uid :String){
+        firestore.collection("users")
+            .document(uid)
+            .collection("profile")
+            .document("profile_data")
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    firstName = document.getString("firstName") ?: ""
+                    lastName = document.getString("lastName") ?: ""
+                    phoneNumber = document.getString("phoneNumber") ?: ""
+                    email = document.getString("email") ?: ""
+                    bio = document.getString("bio") ?: ""
+                }
+            }
+            .addOnFailureListener{
+                e->
+                print("Error")
+            }
+    }
+
+    fun saveUserData(uid: String){
         val user = hashMapOf(
             "firstName" to firstName,
             "lastName" to lastName,
@@ -100,6 +123,10 @@ fun ProfileScreen(navController: NavController) {
             }
     }
 
+
+    LaunchedEffect(userId) {
+        userId?.let { loadUserData(it) }
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -111,23 +138,15 @@ fun ProfileScreen(navController: NavController) {
                 },
                 actions = {
                     Button(onClick = {
-                        if (isEditing){
-                            val uid = Firebase.auth.currentUser?.uid ?: return@Button
-                            saveUserData(
-                                uid = uid,
-                                firstName = firstName,
-                                lastName = lastName,
-                                email = email,
-                                phoneNumber = phoneNumber,
-                                bio = bio
-                            )
+                        if (isEditing) {
+                            userId?.let { saveUserData(it) }
                         }
                         isEditing = !isEditing
                     }) {
                         if (isEditing) {
-                            Icon(Icons.Filled.Save, contentDescription = "Back", tint = MaterialTheme.colorScheme.onPrimary)
+                            Icon(Icons.Filled.Save, contentDescription = "Save", tint = MaterialTheme.colorScheme.onPrimary)
                         } else {
-                            Icon(Icons.Filled.Edit, contentDescription = "Back", tint = MaterialTheme.colorScheme.onPrimary)
+                            Icon(Icons.Filled.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onPrimary)
                         }
                     }
                 },
