@@ -2,6 +2,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- İnternet Erişimi -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Depolama Okuma İzni (Android 9 ve öncesi için) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    <!-- Depolama Yazma İzni (Android 9 ve öncesi için) -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+    <!-- Android 10+ için yeni depolama erişimi -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+
 
 
 
