@@ -33,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -66,9 +67,17 @@ fun ProfileScreenEdit (navController: NavController , userId: String?){
     var birthDateError : Boolean by remember { mutableStateOf(false) }
     var birthDateErrorMessage : String? by remember { mutableStateOf<String?>(null) }
 
+    //Email hata mesajı durumu
+    var emailError : Boolean by remember { mutableStateOf(false) }
+    var emailErrorMessage : String? by remember { mutableStateOf<String?>(null) }
+
+
 
     //Regex ile tarih formatını kontrol etme
     val datePattern = Regex("""^(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[0-2])\.\d{4}$""")
+
+    //Regex ile email formatını kontrol etme
+    val emailPattern = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
 
 
     //Indicator durumu(Loading) firestore'dan verileri çekme
@@ -104,12 +113,24 @@ fun ProfileScreenEdit (navController: NavController , userId: String?){
 
     //Kullanıcı bilgilerini Firestore'a kaydeden method
     fun saveUserData() {
-        if (!datePattern.matches(birthDate.trim())) {
+
+        // Geçerli email kontrollü
+        if (email.isNotBlank() && !emailPattern.matches(email.trim())) {
+            emailError = true
+            emailErrorMessage = "Please enter a valid email address."
+            return
+        }
+
+
+        //Geçerli doğum tarihi kontrollü
+        if (birthDate.isNotBlank() && !datePattern.matches(birthDate.trim())) {
             birthDateError = true
             birthDateErrorMessage = "Please enter a valid date (DD.MM.YYYY)"
             return
         }
+
         isSaving= true
+
         userId?.let { uid ->
             val user = hashMapOf(
                 "name" to name,
@@ -173,6 +194,7 @@ fun ProfileScreenEdit (navController: NavController , userId: String?){
         ) {
 
 
+            //Başlık alanı
             Text(
                 text = "Update Profile Information" ,
                 style = MaterialTheme.typography.headlineLarge,
@@ -180,10 +202,14 @@ fun ProfileScreenEdit (navController: NavController , userId: String?){
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
+
+            //Loading indicatoru
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Loading user data...")
             }else {
                 val inputFieldModifier = Modifier.width(500.dp)
 
@@ -194,6 +220,7 @@ fun ProfileScreenEdit (navController: NavController , userId: String?){
                     onValueChange = { name = it },
                     label = { Text("Name") },
                     singleLine = true,
+                    placeholder = { Text("Name") },
                     leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                     modifier = inputFieldModifier
 
@@ -204,22 +231,39 @@ fun ProfileScreenEdit (navController: NavController , userId: String?){
                 //Email alanı
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = {
+                        email = it.trim()
+                        emailError = email.isNotBlank() && !emailPattern.matches(email)
+                        emailErrorMessage = if (emailError) "Please enter a valid email address." else null
+                    },
                     label = { Text("Email") },
+                    placeholder = { Text("Email") },
                     singleLine = true,
                     leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                    isError = emailError,
                     modifier = inputFieldModifier
-
                 )
 
+                emailErrorMessage?.let {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = inputFieldModifier
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 //Telefon numarası alanı
                 OutlinedTextField(
                     value = phoneNumber,
-                    onValueChange = { phoneNumber = it },
-                    label = { Text("Telefon Numarası") },
+                    onValueChange = {
+                        phoneNumber = it
+
+                                    },
+                    label = { Text("Phone Number") },
+                    placeholder = { Text("Phone Number") },
                     leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions.Default.copy(
@@ -236,13 +280,8 @@ fun ProfileScreenEdit (navController: NavController , userId: String?){
                     value = birthDate,
                     onValueChange = {
                         birthDate = it
-                        if (datePattern.matches(it.trim())) {
-                            birthDateError = false
-                            birthDateErrorMessage = null
-                        } else {
-                            birthDateError = true
-                            birthDateErrorMessage = "Please enter a valid date (DD.MM.YYYY)"
-                        }
+                        birthDateError = birthDate.isNotBlank() && !datePattern.matches(it.trim())
+                        birthDateErrorMessage = if (birthDateError) "Please enter a valid date (DD.MM.YYYY)" else null
                     },
                     label = { Text("Birth Date") },
                     leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
@@ -273,7 +312,8 @@ fun ProfileScreenEdit (navController: NavController , userId: String?){
                 OutlinedTextField(
                     value = bio,
                     onValueChange = { bio = it },
-                    label = { Text("Kendime Not") },
+                    label = { Text("To Myself") },
+                    placeholder = { Text("The main idea of your life") },
                     leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
                     modifier = inputFieldModifier
 
