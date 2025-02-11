@@ -4,14 +4,11 @@ package com.tbox.jotter.profile
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -33,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -46,14 +42,11 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreenEdit (navController: NavController , userId: String?){
 
     //Firebase Firestore referansı
     val firestore : FirebaseFirestore = Firebase.firestore
-
 
     //Kullanıcı bilgilerini tutan değişken
     var name : String by remember { mutableStateOf("") }
@@ -61,7 +54,6 @@ fun ProfileScreenEdit (navController: NavController , userId: String?){
     var birthDate : String by remember { mutableStateOf("") }
     var phoneNumber : String by remember { mutableStateOf("") }
     var bio : String by remember { mutableStateOf("") }
-
 
     //Birth Date için hata mesajı durumu
     var birthDateError : Boolean by remember { mutableStateOf(false) }
@@ -71,20 +63,18 @@ fun ProfileScreenEdit (navController: NavController , userId: String?){
     var emailError : Boolean by remember { mutableStateOf(false) }
     var emailErrorMessage : String? by remember { mutableStateOf<String?>(null) }
 
-
-
     //Regex ile tarih formatını kontrol etme
     val datePattern = Regex("""^(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[0-2])\.\d{4}$""")
 
     //Regex ile email formatını kontrol etme
     val emailPattern = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
 
-
     //Indicator durumu(Loading) firestore'dan verileri çekme
     var isLoading : Boolean by remember { mutableStateOf(true) }
 
     //Indicator durumu (saving) firestore'a verileri save etme
     var isSaving : Boolean by remember { mutableStateOf(false) }
+
 
 
     //Kullanıcı verilerini Firestore'dan çekme
@@ -194,6 +184,8 @@ fun ProfileScreenEdit (navController: NavController , userId: String?){
         ) {
 
 
+            Spacer(modifier = Modifier.height(10.dp))
+
             //Başlık alanı
             Text(
                 text = "Update Profile Information" ,
@@ -205,9 +197,7 @@ fun ProfileScreenEdit (navController: NavController , userId: String?){
 
             //Loading indicatoru
             if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(16.dp))
                 Text("Loading user data...")
             }else {

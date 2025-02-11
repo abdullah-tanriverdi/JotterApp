@@ -3,13 +3,14 @@ package com.tbox.jotter.profile
 
 import android.annotation.SuppressLint
 import android.net.Uri
-import androidx.activity.ComponentActivity
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,38 +18,35 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.GridGoldenratio
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.ManageAccounts
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Stars
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -57,14 +55,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import coil.compose.AsyncImage
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -72,10 +69,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.storage
-import com.tbox.jotter.R
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ProfileScreen(navController: NavController) {
@@ -85,8 +85,7 @@ fun ProfileScreen(navController: NavController) {
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
     //Durum değişkenleri
-    var showMenu by remember { mutableStateOf(false) }
-    var isEditing by remember { mutableStateOf(false) }
+    var showOptionsProfile by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }
 
 
@@ -99,11 +98,14 @@ fun ProfileScreen(navController: NavController) {
     val userId = auth.currentUser?.uid
 
     //Kullanıcı bilgilerini tutan değişken
-    var name: String by remember { mutableStateOf("") }
-    var phoneNumber: String by remember { mutableStateOf("") }
-    var email: String by remember { mutableStateOf("") }
-    var bio: String by remember { mutableStateOf("") }
+    var name: String? by remember { mutableStateOf<String?>("") }
+    var phoneNumber: String? by remember { mutableStateOf<String?>("") }
+    var email: String? by remember { mutableStateOf<String?>("") }
+    var bio: String? by remember { mutableStateOf<String?>("") }
+    var birthDate : String? by remember { mutableStateOf<String?>("") }
     var profileImageUrl: String? by remember { mutableStateOf<String?>(null) }
+
+    var daysSinceBirth by remember { mutableStateOf(0) }
 
 
     //Kullanıcı verilerini Firestore'dan çeken method
@@ -122,6 +124,7 @@ fun ProfileScreen(navController: NavController) {
                 phoneNumber = document.getString("phoneNumber") ?: ""
                 email = document.getString("email") ?: ""
                 bio = document.getString("bio") ?: ""
+                birthDate = document.getString("birthDate")
                 profileImageUrl = document.getString("profileImageUrl")
             }
         } catch (e: Exception) {
@@ -224,79 +227,314 @@ fun ProfileScreen(navController: NavController) {
         }
     }
 
+    fun calculateDaysSinceBirth(birthDate: String?): Int {
+        try {
+            if (birthDate.isNullOrEmpty()) {
+                return 0
+            }
+
+            // Doğum tarihini formatla LocalDate formatına dönüştür
+            val formatter = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                DateTimeFormatter.ofPattern("dd.MM.yyy")
+            } else {
+                TODO("VERSION.SDK_INT < O")
+            } // Eğer tarih formatınız farklıysa bunu değiştirebilirsiniz
+            val birthLocalDate = LocalDate.parse(birthDate, formatter)
+
+            // Bugünün tarihini al
+            val currentDate = LocalDate.now()
+
+            // Doğum tarihi ile bugünün arasındaki farkı hesapla
+            return ChronoUnit.DAYS.between(birthLocalDate, currentDate).toInt()
+        }catch (e: Exception){
+            return 0
+        }
+
+    }
+
+    LaunchedEffect(birthDate) {
+        daysSinceBirth = calculateDaysSinceBirth(birthDate)
+    }
+
 
     Scaffold(
         content = { paddingValues ->
-            Box(modifier = Modifier.fillMaxSize()){
+
+            if (isLoading){
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                }
+            }else {
                 Column(
                     modifier = Modifier
                         .padding(paddingValues)
-                         .padding(16.dp))
-                    {
+                        .fillMaxSize()
+                        .padding(horizontal = 24.dp, vertical = 16.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    //Profil kutusu
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onTap = {
+                                        if (showOptionsProfile) {
+                                            showOptionsProfile = false
+                                        }
+                                    }
+                                )
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+
+                        // Profil fotoğrafı kutusu
+                        Box(
+                            modifier = Modifier
+                                .size(150.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surface)
+                                .pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onLongPress = {
+                                            showOptionsProfile = true
+                                        }
+                                    )
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+
+                        }
+
+                        //Seçenekler kısmı
+                        if (showOptionsProfile) {
+                            Column(
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(20.dp))
+
+                            ) {
+                                // Fotoğraf Yükle
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            showOptionsProfile = false
+                                        }
+                                        .padding(8.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Upload,
+                                            contentDescription = "Upload Icon",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+
+                                        Spacer(modifier = Modifier.width(8.dp))
+
+                                        Text(
+                                            text = "Upload Photo",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+
+
+                                // Çizgi
+                                Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), thickness = 1.dp)
+
+
+                                // Fotoğraf Sil
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            showOptionsProfile = false
+                                        }
+                                        .padding(8.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.DeleteSweep,
+                                            contentDescription = "Delete Icon",
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+
+                                        Spacer(modifier = Modifier.width(8.dp))
+
+                                        Text(
+                                            text = "Delete Photo",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
 
 
 
+                    Spacer(modifier = Modifier.height(14.dp))
 
+                    //İsim alanı
+                    name?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    //Yaş alanı
+                    Text(
+                        text = "$daysSinceBirth days of living, learning, and growing!",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+
+                    Spacer(modifier = Modifier.height(35.dp))
+
+
+                    // Kart Başlığı
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Personal Info Icon",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Text(
+                            text = "Personal Info",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+
+                    //Email
+                    email?.let { InfoRow(label = "Email ->", value = it) }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    //Telefon numarası
+                    phoneNumber?.let { InfoRow(label = "Phone Number ->", value = it) }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    //Doğum tarihi
+                    birthDate?.let { InfoRow(label = "Date of Birth ->", value = it) }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+
+                    //Çizgi
+                    Divider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        thickness = 1.dp
+                    )
+
+
+                    //Kart başlığı
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Stars,
+                            contentDescription = "To Myself Icon",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Text(
+                            text = "To Myself",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+
+                    //Bio alanı
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 10.dp)
+                            .shadow(4.dp, shape = MaterialTheme.shapes.medium),
+                        shape = MaterialTheme.shapes.medium,
+
+                        ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            bio?.let {
+                                Text(
+                                    text = it,
+
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    lineHeight = 24.sp
+                                )
+                            }
+                        }
+                    }
+
+
+                    Spacer(modifier = Modifier.height(48.dp))
                 }
-
-
-
-
             }
-        } ,
-        //Kullanıcı bilgileri girme FAB Butonu
+
+        },
+
+        //ProfileScreenEdit'e giden FAB butonu
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
                     navController.navigate("profile_screen_edit")
                 } ,
-                modifier = Modifier.padding(end = 16.dp , top = 16.dp) ,
+                modifier = Modifier.padding(16.dp),
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
-                    Icon(Icons.Default.Edit , contentDescription = "Edit")
-
+                    Icon(Icons.Default.ManageAccounts , contentDescription = "Manage Accounts")
 
 
             }
-        } ,
-        floatingActionButtonPosition = FabPosition.End
-    )
-
-}
-
-
-  /*  Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        if (isEditing) "Edit Profile" else "Profile",
-                       color = MaterialTheme.colorScheme.onPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onPrimary)
-                    }
-                },
-                actions = {
-                    Button(onClick = {
-                        if (isEditing) {
-                            userId?.let { saveUserData(it) }
-                        }
-                        isEditing = !isEditing
-                    }) {
-                        if (isEditing) {
-                            Icon(Icons.Filled.Save, contentDescription = "Save", tint = MaterialTheme.colorScheme.onPrimary)
-                        } else {
-                            Icon(Icons.Filled.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onPrimary)
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            )
-        },
-        bottomBar = {
+        } ,bottomBar = {
             BottomAppBar {
 
                 //İkonların seçili olup olmadığına göre renk belirleme
@@ -323,6 +561,7 @@ fun ProfileScreen(navController: NavController) {
 
 
 
+                //To-Do Butonu
                 IconButton(onClick = { navController.navigate("setting") }, modifier = Modifier.weight(1f, true)) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(Icons.Filled.Checklist, contentDescription = "To-Do", tint = settingIconTint)
@@ -348,141 +587,47 @@ fun ProfileScreen(navController: NavController) {
                 }
 
             }
-        },
-
-        content = { paddingValues ->
-
-            if (isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator() // Yükleniyor göstergesi
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxSize()
-                        .imePadding()
-
-                ) {
-
-
-                        Spacer(modifier = Modifier.height(40.dp))
-
-
-
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-
-                        if (profileImageUrl != null) {
-                            AsyncImage(
-                                model = profileImageUrl,
-                                contentDescription = "Profile Picture",
-                                modifier = Modifier
-                                    .size(120.dp)
-                                    .clickable { showMenu = !showMenu
-
-                                    }
-                                    .background(Color.Magenta, CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Image(
-                                painter = painterResource(id = R.drawable.jotter_unbackground),
-                                contentDescription = "Profile Picture",
-                                modifier = Modifier
-                                    .size(120.dp)
-                                    .clickable { showMenu = !showMenu
-                                   }
-                                    .background(Color.Gray, CircleShape)
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false },
-                            modifier = Modifier.align(Alignment.Center),
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Fotoğraf Yükle") },
-                                onClick = {
-                                    showMenu = false
-                                    imagePickerLauncher.launch("image/*")
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Fotoğrafı Sil") },
-                                onClick = {
-                                    showMenu = false
-                                    deleteProfileImage()
-
-                                }
-                            )
-                        }
-
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-
-                    // First Name (Editable based on isEditing)
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = { if (isEditing) name = it },
-                        label = { Text("Name") },
-                        modifier = Modifier.fillMaxWidth(),
-                        readOnly = !isEditing
-                    )
-
-
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    // Phone Number (Editable based on isEditing)
-                    OutlinedTextField(
-                        value = phoneNumber,
-                        onValueChange = { if (isEditing) phoneNumber = it },
-                        label = { Text("Phone Number") },
-                        modifier = Modifier.fillMaxWidth(),
-                        readOnly = !isEditing
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    // Email (Editable based on isEditing)
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = { if (isEditing) email = it },
-                        label = { Text("Email") },
-                        modifier = Modifier.fillMaxWidth(),
-                        readOnly = !isEditing
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    // Bio (Editable based on isEditing)
-                    OutlinedTextField(
-                        value = bio,
-                        onValueChange = { if (isEditing && it.length<=75)
-                        {
-                            bio =it
-                        }},
-                        label = { Text("to myself") },
-                        modifier = Modifier.fillMaxWidth(),
-                        readOnly = !isEditing
-                    )
-                }
-            }
-
-
         }
-    )*/
+    )
+
+}
 
 
-      */
+
+//Personal info kart tasarımı
+@Composable
+fun InfoRow(label : String, value : String ) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp)
+            .shadow(4.dp, shape = MaterialTheme.shapes.medium),
+        shape = MaterialTheme.shapes.medium,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Etiket
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                // Değer
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
