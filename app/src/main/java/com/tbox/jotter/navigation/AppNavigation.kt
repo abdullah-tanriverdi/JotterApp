@@ -4,7 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
 import com.tbox.jotter.home.NoteDetailScreen
 import com.tbox.jotter.home.AddNoteScreen
 import com.tbox.jotter.auth.AuthViewModel
@@ -17,6 +19,7 @@ import com.tbox.jotter.splash.SplashScreen
 import com.tbox.jotter.login.LoginScreen
 import com.tbox.jotter.login.ResetScreen
 import com.tbox.jotter.profile.ProfileScreen
+import com.tbox.jotter.profile.ProfileScreenEdit
 import com.tbox.jotter.signup.SignUpScreen
 
 @Composable
@@ -74,6 +77,10 @@ fun AppNavigation(navController: NavHostController, authViewModel: AuthViewModel
             val currentUser = FirebaseAuth.getInstance().currentUser
             val uid = currentUser?.uid ?: ""
             NoteDetailScreen(noteId = noteId, uid = uid, navController = navController)
+        }
+
+        composable("profile_screen_edit"){
+            ProfileScreenEdit(navController = navController , Firebase.auth.currentUser?.uid)
         }
 
 

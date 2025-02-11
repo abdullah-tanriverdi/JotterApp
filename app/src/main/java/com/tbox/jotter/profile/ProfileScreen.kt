@@ -12,10 +12,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -23,6 +25,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GridGoldenratio
@@ -31,10 +34,13 @@ import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -60,10 +66,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.storage
 import com.tbox.jotter.R
+import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -71,57 +81,65 @@ import com.tbox.jotter.R
 fun ProfileScreen(navController: NavController) {
 
 
+    //Mevcut bottom bar rota bilgisini alır
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
-    var name by remember { mutableStateOf("") }
-
-    var phoneNumber by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var bio by remember { mutableStateOf("") }
-
-    val firestore = Firebase.firestore
-    val storage = Firebase.storage
-
+    //Durum değişkenleri
     var showMenu by remember { mutableStateOf(false) }
-val auth = Firebase.auth
-
     var isEditing by remember { mutableStateOf(false) }
-
     var isLoading by remember { mutableStateOf(true) }
 
-    var profileImageUrl by remember { mutableStateOf<String?>(null) }
 
+    //Firebase Firestore ve Storage referansları
+    val firestore: FirebaseFirestore = Firebase.firestore
+    val storage: FirebaseStorage = Firebase.storage
+    val auth: FirebaseAuth = Firebase.auth
 
+    //Kullanıcı ID'sini erişim
     val userId = auth.currentUser?.uid
 
+    //Kullanıcı bilgilerini tutan değişken
+    var name: String by remember { mutableStateOf("") }
+    var phoneNumber: String by remember { mutableStateOf("") }
+    var email: String by remember { mutableStateOf("") }
+    var bio: String by remember { mutableStateOf("") }
+    var profileImageUrl: String? by remember { mutableStateOf<String?>(null) }
 
 
-    fun loadUserData(uid :String){
+    //Kullanıcı verilerini Firestore'dan çeken method
+    suspend fun getUserData(uid: String) {
         isLoading = true
-        firestore.collection("users")
-            .document(uid)
-            .collection("profile")
-            .document("profile_data")
-            .get()
-            .addOnSuccessListener { document ->
-                if (document != null && document.exists()) {
-                    name = document.getString("name") ?: ""
+        try {
+            val document = firestore.collection("users")
+                .document(uid)
+                .collection("profile")
+                .document("profile_data")
+                .get()
+                .await()
 
-                    phoneNumber = document.getString("phoneNumber") ?: ""
-                    email = document.getString("email") ?: ""
-                    bio = document.getString("bio") ?: ""
-                    profileImageUrl = document.getString("profileImageUrl")
-                }
-                isLoading = false
+            if (document.exists()) {
+                name = document.getString("name") ?: ""
+                phoneNumber = document.getString("phoneNumber") ?: ""
+                email = document.getString("email") ?: ""
+                bio = document.getString("bio") ?: ""
+                profileImageUrl = document.getString("profileImageUrl")
             }
-            .addOnFailureListener{
-                e->
-                isLoading = false
-                print("Error")
-            }
+        } catch (e: Exception) {
+            println("Error: $e")
+        } finally {
+            isLoading = false
+        }
     }
 
-    fun saveUserData(uid: String){
+    LaunchedEffect(userId) {
+        userId?.let { uid ->
+            getUserData(uid)
+        }
+    }
+
+
+    //Güncellenen kullanıcı verilerini kaydeden method
+    fun saveUserData(uid: String) {
         val user = hashMapOf(
             "name" to name,
             "phoneNumber" to phoneNumber,
@@ -130,29 +148,25 @@ val auth = Firebase.auth
             "profileImageUrl" to profileImageUrl
         )
 
-
         firestore.collection("users")
             .document(uid)
             .collection("profile")
             .document("profile_data")
             .set(user)
-            .addOnSuccessListener {  }
-            .addOnFailureListener{ e->
-                print("error: $e")
+            .addOnSuccessListener { }
+            .addOnFailureListener { e ->
+                println("Error: $e")
             }
     }
 
 
-    fun uploadProfileImage ( uri: Uri){
-
-       // profileImageUrl = uri.toString()
-        userId?.let{
-            uid->
+    //Profil fotoğrafını yükleyen method
+    fun uploadProfileImageUrl(uri: Uri) {
+        userId?.let { uid ->
             val storageRef = storage.reference.child("profile_images/$uid.jpg")
             storageRef.putFile(uri)
                 .addOnSuccessListener {
-                    storageRef.downloadUrl.addOnSuccessListener {
-                        downloadUri ->
+                    storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
                         profileImageUrl = downloadUri.toString()
                         saveUserData(uid)
                     }
@@ -161,14 +175,35 @@ val auth = Firebase.auth
     }
 
 
+    //ActivityResultLauncher'ı oluşturma. Kullanıcıya seçici pencersini açmak için kullanılır.
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            uploadProfileImageUrl(it)
+        }
+    }
+
+
+    //Profil fotoğrafı her değiştiğinde çalışır
+    LaunchedEffect(profileImageUrl) {
+        profileImageUrl?.let {
+            userId?.let { uid ->
+                saveUserData(uid)
+            }
+        }
+    }
+
+
+
+    //Profil fotoğrafını sil
     fun deleteProfileImage() {
         userId?.let { uid ->
             val storageRef = storage.reference.child("profile_images/$uid.jpg")
             storageRef.delete()
                 .addOnSuccessListener {
-
-                    val defaultImageUrl = "https://github.com/abdullah-tanriverdi/JotterApp/raw/master/app/src/main/res/drawable/jotter_unbackground.png"
-                    // Update the profileImageUrl in Firestore to null (or remove it)
+                    val defaultImageUrl =
+                        "https://github.com/abdullah-tanriverdi/JotterApp/raw/master/app/src/main/res/drawable/jotter_unbackground.png"
                     val userRef = firestore.collection("users")
                         .document(uid)
                         .collection("profile")
@@ -176,49 +211,61 @@ val auth = Firebase.auth
 
                     userRef.update("profileImageUrl", defaultImageUrl)
                         .addOnSuccessListener {
-                            // After updating Firestore, set profileImageUrl to null in the UI state
                             profileImageUrl = defaultImageUrl
-                            saveUserData(uid) // Save the updated profile data without the image URL
+                            saveUserData(uid)
                         }
                         .addOnFailureListener { e ->
-                            // Handle error in Firestore update
-                            println("Error updating Firestore: $e")
+                            println("Error: $e")
                         }
                 }
                 .addOnFailureListener { e ->
-                    // Handle error in Firebase Storage delete
-                    println("Error deleting image: $e")
+                    println("Error: $e")
                 }
         }
     }
 
-    val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) {
-            uri: Uri? ->
-        uri?.let {
-            uploadProfileImage(it)
-        }
-    }
+
+    Scaffold(
+        content = { paddingValues ->
+            Box(modifier = Modifier.fillMaxSize()){
+                Column(
+                    modifier = Modifier
+                        .padding(paddingValues)
+                         .padding(16.dp))
+                    {
 
 
 
 
-LaunchedEffect(profileImageUrl) {
-    profileImageUrl?.let {
-        userId?.let {
-            uid ->
-            saveUserData(uid)
-        }
-    }
+                }
+
+
+
+
+            }
+        } ,
+        //Kullanıcı bilgileri girme FAB Butonu
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    navController.navigate("profile_screen_edit")
+                } ,
+                modifier = Modifier.padding(end = 16.dp , top = 16.dp) ,
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                    Icon(Icons.Default.Edit , contentDescription = "Edit")
+
+
+
+            }
+        } ,
+        floatingActionButtonPosition = FabPosition.End
+    )
+
 }
 
 
-
-    LaunchedEffect(userId) {
-        userId?.let { loadUserData(it) }
-    }
-    Scaffold(
+  /*  Scaffold(
         topBar = {
             TopAppBar(
                 title = {
@@ -317,6 +364,7 @@ LaunchedEffect(profileImageUrl) {
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxSize()
+                        .imePadding()
 
                 ) {
 
@@ -434,14 +482,7 @@ LaunchedEffect(profileImageUrl) {
 
 
         }
-    )
-}
+    )*/
 
 
-
-
-
-
-
-
-
+      */
