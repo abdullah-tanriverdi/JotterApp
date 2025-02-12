@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -74,6 +75,8 @@ fun ProfileScreenEdit (navController: NavController , userId: String?){
 
     //Indicator durumu (saving) firestore'a verileri save etme
     var isSaving : Boolean by remember { mutableStateOf(false) }
+
+
 
 
 
@@ -122,28 +125,41 @@ fun ProfileScreenEdit (navController: NavController , userId: String?){
         isSaving= true
 
         userId?.let { uid ->
-            val user = hashMapOf(
-                "name" to name,
-                "email" to email,
-                "birthDate" to birthDate,
-                "phoneNumber" to phoneNumber,
-                "bio" to bio
-            )
 
 
             firestore.collection("users")
                 .document(uid)
                 .collection("profile")
                 .document("profile_data")
-                .set(user)
+                .get()
                 .addOnSuccessListener {
-                    isSaving = false
-                    navController.popBackStack()
-                }
-                .addOnFailureListener{ e ->
-                    isSaving = true
-                    println("Error: $e")
-                }
+                    document ->
+                    val existingProfileImageUrl = document.getString("profileImageUrl") ?: "https://github.com/abdullah-tanriverdi/JotterApp/raw/master/app/src/main/res/drawable/jotter_unbackground.png"
+
+                    val user = hashMapOf(
+                        "name" to name,
+                        "email" to email,
+                        "birthDate" to birthDate,
+                        "phoneNumber" to phoneNumber,
+                        "bio" to bio,
+                        "profileImageUrl" to existingProfileImageUrl
+                    )
+
+
+                    firestore.collection("users")
+                        .document(uid)
+                        .collection("profile")
+                        .document("profile_data")
+                        .set(user)
+                        .addOnSuccessListener {
+                            isSaving = false
+                            navController.popBackStack()
+                        }
+                        .addOnFailureListener{ e ->
+                            isSaving = true
+                            println("Error: $e")
+                        }   }
+
         }
     }
 

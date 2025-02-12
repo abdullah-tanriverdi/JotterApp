@@ -7,7 +7,9 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -58,10 +60,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import coil.compose.rememberImagePainter
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -69,7 +74,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.storage
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -107,6 +111,8 @@ fun ProfileScreen(navController: NavController) {
 
     var daysSinceBirth by remember { mutableStateOf(0) }
 
+    val defaultProfileImage ="https://github.com/abdullah-tanriverdi/JotterApp/raw/master/app/src/main/res/drawable/jotter_unbackground.png"
+
 
     //Kullanıcı verilerini Firestore'dan çeken method
     suspend fun getUserData(uid: String) {
@@ -118,6 +124,9 @@ fun ProfileScreen(navController: NavController) {
                 .document("profile_data")
                 .get()
                 .await()
+
+            profileImageUrl = document.getString("profileImageUrl") ?: defaultProfileImage
+
 
             if (document.exists()) {
                 name = document.getString("name") ?: ""
@@ -141,38 +150,26 @@ fun ProfileScreen(navController: NavController) {
     }
 
 
-    //Güncellenen kullanıcı verilerini kaydeden method
-    fun saveUserData(uid: String) {
-        val user = hashMapOf(
-            "name" to name,
-            "phoneNumber" to phoneNumber,
-            "bio" to bio,
-            "email" to email,
-            "profileImageUrl" to profileImageUrl
-        )
-
-        firestore.collection("users")
-            .document(uid)
-            .collection("profile")
-            .document("profile_data")
-            .set(user)
-            .addOnSuccessListener { }
-            .addOnFailureListener { e ->
-                println("Error: $e")
-            }
-    }
-
-
     //Profil fotoğrafını yükleyen method
-    fun uploadProfileImageUrl(uri: Uri) {
+    fun uploadProfileImage(uri: Uri) {
         userId?.let { uid ->
             val storageRef = storage.reference.child("profile_images/$uid.jpg")
             storageRef.putFile(uri)
                 .addOnSuccessListener {
                     storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
                         profileImageUrl = downloadUri.toString()
-                        saveUserData(uid)
+                        firestore.collection("users")
+                            .document(uid)
+                            .collection("profile")
+                            .document("profile_data")
+                            .update("profileImageUrl", downloadUri.toString())
+                            .addOnSuccessListener {
+
+                            }
                     }
+                }
+                .addOnFailureListener { e ->
+                    println("Error: $e")
                 }
         }
     }
@@ -183,19 +180,11 @@ fun ProfileScreen(navController: NavController) {
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            uploadProfileImageUrl(it)
+            uploadProfileImage(it)
         }
     }
 
 
-    //Profil fotoğrafı her değiştiğinde çalışır
-    LaunchedEffect(profileImageUrl) {
-        profileImageUrl?.let {
-            userId?.let { uid ->
-                saveUserData(uid)
-            }
-        }
-    }
 
 
 
@@ -205,27 +194,31 @@ fun ProfileScreen(navController: NavController) {
             val storageRef = storage.reference.child("profile_images/$uid.jpg")
             storageRef.delete()
                 .addOnSuccessListener {
-                    val defaultImageUrl =
-                        "https://github.com/abdullah-tanriverdi/JotterApp/raw/master/app/src/main/res/drawable/jotter_unbackground.png"
-                    val userRef = firestore.collection("users")
+                    profileImageUrl = defaultProfileImage
+                    firestore.collection("users")
                         .document(uid)
                         .collection("profile")
                         .document("profile_data")
-
-                    userRef.update("profileImageUrl", defaultImageUrl)
-                        .addOnSuccessListener {
-                            profileImageUrl = defaultImageUrl
-                            saveUserData(uid)
-                        }
-                        .addOnFailureListener { e ->
-                            println("Error: $e")
-                        }
+                        .update("profileImageUrl", defaultProfileImage)
                 }
                 .addOnFailureListener { e ->
                     println("Error: $e")
                 }
         }
     }
+
+    LaunchedEffect(userId) {
+        userId?.let { uid ->
+            val document = firestore.collection("users")
+                .document(uid)
+                .collection("profile")
+                .document("profile_data")
+                .get()
+                .await()
+            isLoading = false
+        }
+    }
+
 
     fun calculateDaysSinceBirth(birthDate: String?): Int {
         try {
@@ -303,6 +296,7 @@ fun ProfileScreen(navController: NavController) {
                                 .size(150.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.surface)
+                                .border(4.dp, MaterialTheme.colorScheme.primary, CircleShape) // Çerçeve ekledik
                                 .pointerInput(Unit) {
                                     detectTapGestures(
                                         onLongPress = {
@@ -312,6 +306,20 @@ fun ProfileScreen(navController: NavController) {
                                 },
                             contentAlignment = Alignment.Center
                         ) {
+
+                            Image(
+                                painter = rememberImagePainter(
+                                    data = profileImageUrl,
+                                    builder = {
+                                        crossfade(true) // Yumuşak geçiş efekti
+                                    }
+                                ),
+                                contentDescription = "Profile Image",
+                                contentScale = ContentScale.Crop, // Fotoğrafı kırparak tam sığdırır
+                                modifier = Modifier
+                                    .size(150.dp) // Fotoğraf boyutu kutu ile aynı
+                                    .clip(CircleShape) // Yuvarlak şekil
+                            )
 
                         }
 
@@ -329,6 +337,7 @@ fun ProfileScreen(navController: NavController) {
                                         .fillMaxWidth()
                                         .clickable {
                                             showOptionsProfile = false
+                                            imagePickerLauncher.launch("image/*")
                                         }
                                         .padding(8.dp)
                                 ) {
@@ -366,6 +375,7 @@ fun ProfileScreen(navController: NavController) {
                                         .fillMaxWidth()
                                         .clickable {
                                             showOptionsProfile = false
+                                            deleteProfileImage()
                                         }
                                         .padding(8.dp)
                                 ) {
