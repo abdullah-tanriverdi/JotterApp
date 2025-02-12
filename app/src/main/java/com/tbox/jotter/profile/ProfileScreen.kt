@@ -6,7 +6,6 @@ import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -42,7 +41,6 @@ import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -61,7 +59,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -70,6 +67,7 @@ import coil.compose.rememberImagePainter
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
@@ -79,18 +77,19 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
-
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ProfileScreen(navController: NavController) {
 
 
     //Mevcut bottom bar rota bilgisini alır
-    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+    val currentRoute : String? = navController.currentBackStackEntryAsState().value?.destination?.route
 
-    //Durum değişkenleri
-    var showOptionsProfile by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(true) }
+    //Profil fotoğrafı seçeneklerini tutan state değişkeni
+    var showOptionsProfile: Boolean by remember { mutableStateOf(false) }
+
+    //Verilerin yüklenmesi durumunu tutan state değişkeni
+    var isLoading : Boolean by remember { mutableStateOf(true) }
 
 
     //Firebase Firestore ve Storage referansları
@@ -99,9 +98,9 @@ fun ProfileScreen(navController: NavController) {
     val auth: FirebaseAuth = Firebase.auth
 
     //Kullanıcı ID'sini erişim
-    val userId = auth.currentUser?.uid
+    val userId :String? = auth.currentUser?.uid
 
-    //Kullanıcı bilgilerini tutan değişken
+    //Kullanıcı bilgilerini tutan state değişkenleri
     var name: String? by remember { mutableStateOf<String?>("") }
     var phoneNumber: String? by remember { mutableStateOf<String?>("") }
     var email: String? by remember { mutableStateOf<String?>("") }
@@ -109,24 +108,25 @@ fun ProfileScreen(navController: NavController) {
     var birthDate : String? by remember { mutableStateOf<String?>("") }
     var profileImageUrl: String? by remember { mutableStateOf<String?>(null) }
 
-    var daysSinceBirth by remember { mutableStateOf(0) }
+    //Gün sayısını tutan state değişkeni
+    var daysSinceBirth : Int by remember { mutableStateOf(0) }
 
+    //Varsayılan profil resmi URL'si
     val defaultProfileImage ="https://github.com/abdullah-tanriverdi/JotterApp/raw/master/app/src/main/res/drawable/jotter_unbackground.png"
+
+
 
 
     //Kullanıcı verilerini Firestore'dan çeken method
     suspend fun getUserData(uid: String) {
         isLoading = true
         try {
-            val document = firestore.collection("users")
+            val document  = firestore.collection("users")
                 .document(uid)
-                .collection("profile")
+                .collection( "profile")
                 .document("profile_data")
                 .get()
                 .await()
-
-            profileImageUrl = document.getString("profileImageUrl") ?: defaultProfileImage
-
 
             if (document.exists()) {
                 name = document.getString("name") ?: ""
@@ -143,9 +143,11 @@ fun ProfileScreen(navController: NavController) {
         }
     }
 
+    //Kullanıcı verilerini yükler
     LaunchedEffect(userId) {
         userId?.let { uid ->
             getUserData(uid)
+            isLoading = false
         }
     }
 
@@ -153,7 +155,7 @@ fun ProfileScreen(navController: NavController) {
     //Profil fotoğrafını yükleyen method
     fun uploadProfileImage(uri: Uri) {
         userId?.let { uid ->
-            val storageRef = storage.reference.child("profile_images/$uid.jpg")
+            val storageRef = storage.reference.child("users/$uid/profile/profile_image.jpg")
             storageRef.putFile(uri)
                 .addOnSuccessListener {
                     storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
@@ -163,9 +165,6 @@ fun ProfileScreen(navController: NavController) {
                             .collection("profile")
                             .document("profile_data")
                             .update("profileImageUrl", downloadUri.toString())
-                            .addOnSuccessListener {
-
-                            }
                     }
                 }
                 .addOnFailureListener { e ->
@@ -179,19 +178,17 @@ fun ProfileScreen(navController: NavController) {
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let {
-            uploadProfileImage(it)
+        uri?.let { uri ->
+            uploadProfileImage(uri)
         }
     }
-
-
 
 
 
     //Profil fotoğrafını sil
     fun deleteProfileImage() {
         userId?.let { uid ->
-            val storageRef = storage.reference.child("profile_images/$uid.jpg")
+            val storageRef = storage.reference.child("users/$uid/profile/profile_image.jpg")
             storageRef.delete()
                 .addOnSuccessListener {
                     profileImageUrl = defaultProfileImage
@@ -207,37 +204,25 @@ fun ProfileScreen(navController: NavController) {
         }
     }
 
-    LaunchedEffect(userId) {
-        userId?.let { uid ->
-            val document = firestore.collection("users")
-                .document(uid)
-                .collection("profile")
-                .document("profile_data")
-                .get()
-                .await()
-            isLoading = false
-        }
-    }
 
 
+
+    //Gün sayısını hesaplayan method
     fun calculateDaysSinceBirth(birthDate: String?): Int {
         try {
             if (birthDate.isNullOrEmpty()) {
                 return 0
             }
 
-            // Doğum tarihini formatla LocalDate formatına dönüştür
             val formatter = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 DateTimeFormatter.ofPattern("dd.MM.yyy")
             } else {
                 TODO("VERSION.SDK_INT < O")
-            } // Eğer tarih formatınız farklıysa bunu değiştirebilirsiniz
+            }
             val birthLocalDate = LocalDate.parse(birthDate, formatter)
 
-            // Bugünün tarihini al
             val currentDate = LocalDate.now()
 
-            // Doğum tarihi ile bugünün arasındaki farkı hesapla
             return ChronoUnit.DAYS.between(birthLocalDate, currentDate).toInt()
         }catch (e: Exception){
             return 0
@@ -245,6 +230,7 @@ fun ProfileScreen(navController: NavController) {
 
     }
 
+    //Doğum tarihi değiştiğinde gün sayısını yeniden hesaplar
     LaunchedEffect(birthDate) {
         daysSinceBirth = calculateDaysSinceBirth(birthDate)
     }
@@ -253,11 +239,13 @@ fun ProfileScreen(navController: NavController) {
     Scaffold(
         content = { paddingValues ->
 
+            //Loading kontrollü
             if (isLoading){
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
+                    //Yükleniyor göstergesi
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }else {
@@ -296,7 +284,7 @@ fun ProfileScreen(navController: NavController) {
                                 .size(150.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.surface)
-                                .border(4.dp, MaterialTheme.colorScheme.primary, CircleShape) // Çerçeve ekledik
+                                .border(4.dp, MaterialTheme.colorScheme.primary, CircleShape)
                                 .pointerInput(Unit) {
                                     detectTapGestures(
                                         onLongPress = {
@@ -311,14 +299,14 @@ fun ProfileScreen(navController: NavController) {
                                 painter = rememberImagePainter(
                                     data = profileImageUrl,
                                     builder = {
-                                        crossfade(true) // Yumuşak geçiş efekti
+                                        crossfade(true)
                                     }
                                 ),
                                 contentDescription = "Profile Image",
-                                contentScale = ContentScale.Crop, // Fotoğrafı kırparak tam sığdırır
+                                contentScale = ContentScale.Crop,
                                 modifier = Modifier
-                                    .size(150.dp) // Fotoğraf boyutu kutu ile aynı
-                                    .clip(CircleShape) // Yuvarlak şekil
+                                    .size(150.dp)
+                                    .clip(CircleShape)
                             )
 
                         }
@@ -420,7 +408,7 @@ fun ProfileScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    //Yaş alanı
+                    //Gün alanı
                     Text(
                         text = "$daysSinceBirth days of living, learning, and growing!",
                         style = MaterialTheme.typography.bodyLarge,
