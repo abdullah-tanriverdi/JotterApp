@@ -25,7 +25,7 @@ fun SplashScreen(navController: NavController , authViewModel: AuthViewModel){
     val authState by authViewModel.authState.observeAsState()
 
     LaunchedEffect(authState) {
-        delay(2000)
+        delay(500)
         when(authState) {
             is AuthViewModel.AuthState.Authenicated -> {
                 navController.navigate("home"){

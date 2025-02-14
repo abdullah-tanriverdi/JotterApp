@@ -18,8 +18,9 @@ import com.tbox.jotter.graph.GraphScreen
 import com.tbox.jotter.splash.SplashScreen
 import com.tbox.jotter.login.LoginScreen
 import com.tbox.jotter.login.ResetScreen
-import com.tbox.jotter.profile.ProfileScreen
-import com.tbox.jotter.profile.ProfileScreenEdit
+import com.tbox.jotter.ScreenProfile.ScreenProfile
+import com.tbox.jotter.ScreenProfile.ScreenProfileEdit
+import com.tbox.jotter.ScreenSettings.ScreenSettings
 import com.tbox.jotter.signup.SignUpScreen
 
 @Composable
@@ -50,11 +51,11 @@ fun AppNavigation(navController: NavHostController, authViewModel: AuthViewModel
         }
 
         composable("setting"){
-            SettingScreen(navController= navController)
+            ScreenSettings(navController= navController)
         }
 
         composable("profile"){
-            ProfileScreen(navController = navController)
+            ScreenProfile(navController = navController)
         }
 
         composable("graph"){
@@ -79,8 +80,9 @@ fun AppNavigation(navController: NavHostController, authViewModel: AuthViewModel
             NoteDetailScreen(noteId = noteId, uid = uid, navController = navController)
         }
 
+
         composable("profile_screen_edit"){
-            ProfileScreenEdit(navController = navController , Firebase.auth.currentUser?.uid)
+            ScreenProfileEdit(navController = navController , Firebase.auth.currentUser?.uid)
         }
 
 

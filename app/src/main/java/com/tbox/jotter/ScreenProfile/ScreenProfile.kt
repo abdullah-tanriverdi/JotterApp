@@ -1,4 +1,4 @@
-package com.tbox.jotter.profile
+package com.tbox.jotter.ScreenProfile
 
 
 import android.annotation.SuppressLint
@@ -67,7 +67,6 @@ import coil.compose.rememberImagePainter
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
@@ -79,7 +78,7 @@ import java.time.temporal.ChronoUnit
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun ScreenProfile(navController: NavController) {
 
 
     //Mevcut bottom bar rota bilgisini alır
@@ -463,6 +462,7 @@ fun ProfileScreen(navController: NavController) {
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                         thickness = 1.dp
                     )
+                    
 
 
                     //Kart başlığı
@@ -542,7 +542,10 @@ fun ProfileScreen(navController: NavController) {
                 val graphIconTint = if (currentRoute == "graph") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
 
                 //Profil Butonu
-                IconButton(onClick = { navController.navigate("profile") }, modifier = Modifier.weight(1f, true)) {
+                IconButton(onClick = {   if (currentRoute != "profile") {
+                    navController.navigate("profile")
+                } },
+                    modifier = Modifier.weight(1f, true)) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(Icons.Filled.AccountCircle, contentDescription = "Profile", tint = profileIconTint)
                         Text(text = "Profile", style = MaterialTheme.typography.bodySmall, color = profileIconTint)
@@ -550,7 +553,9 @@ fun ProfileScreen(navController: NavController) {
                 }
 
                 //Home Butonu
-                IconButton(onClick = { navController.navigate("home") }, modifier = Modifier.weight(1f, true)) {
+                IconButton(onClick = {
+                        navController.navigate("home")
+                }, modifier = Modifier.weight(1f, true)) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(Icons.Default.Home, contentDescription = "Home", tint = homeIconTint)
                         Text(text = "Home", style = MaterialTheme.typography.bodySmall, color = homeIconTint)

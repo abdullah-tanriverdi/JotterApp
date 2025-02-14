@@ -1,4 +1,4 @@
-package com.tbox.jotter.profile
+package com.tbox.jotter.ScreenProfile
 
 
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +33,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -44,7 +42,7 @@ import com.google.firebase.firestore.firestore
 
 
 @Composable
-fun ProfileScreenEdit (navController: NavController , userId: String?){
+fun ScreenProfileEdit (navController: NavController, userId: String?){
 
     //Firebase Firestore referansı
     val firestore : FirebaseFirestore = Firebase.firestore
@@ -125,8 +123,6 @@ fun ProfileScreenEdit (navController: NavController , userId: String?){
         isSaving= true
 
         userId?.let { uid ->
-
-
             firestore.collection("users")
                 .document(uid)
                 .collection("profile")
