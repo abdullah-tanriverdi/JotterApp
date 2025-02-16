@@ -1,6 +1,11 @@
 package com.tbox.jotter.navigation
 
+import android.app.Application
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -11,7 +16,6 @@ import com.tbox.jotter.home.NoteDetailScreen
 import com.tbox.jotter.home.AddNoteScreen
 import com.tbox.jotter.auth.AuthViewModel
 import com.tbox.jotter.home.HomeScreen
-import com.tbox.jotter.setting.SettingScreen
 import com.tbox.jotter.home.SimpleNoteScreen
 import com.tbox.jotter.graph.GraphScreen
 
@@ -24,7 +28,10 @@ import com.tbox.jotter.ScreenSettings.ScreenSettings
 import com.tbox.jotter.signup.SignUpScreen
 
 @Composable
-fun AppNavigation(navController: NavHostController, authViewModel: AuthViewModel) {
+fun AppNavigation(  navController: NavHostController,
+                    darkTheme: Boolean,
+                    onThemeUpdated: () -> Unit,
+                    authViewModel: AuthViewModel) {
     NavHost(navController = navController, startDestination = "splash") {
 
         composable("splash"){
@@ -51,8 +58,11 @@ fun AppNavigation(navController: NavHostController, authViewModel: AuthViewModel
         }
 
         composable("setting"){
-            ScreenSettings(navController= navController)
-        }
+            ScreenSettings(
+                navController = navController,
+                darkTheme = darkTheme, // Pass darkTheme to ScreenSettings
+                onThemeUpdated = onThemeUpdated // Pass the theme toggle callback
+            )       }
 
         composable("profile"){
             ScreenProfile(navController = navController)

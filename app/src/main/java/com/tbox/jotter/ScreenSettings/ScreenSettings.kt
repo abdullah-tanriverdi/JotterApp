@@ -1,28 +1,42 @@
 package com.tbox.jotter.ScreenSettings
 
 import android.annotation.SuppressLint
+import android.graphics.drawable.shapes.Shape
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.GridGoldenratio
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Nightlight
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,40 +50,41 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthException
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun ScreenSettings(navController: NavController){
-
-    val auth = FirebaseAuth.getInstance()
-
-    var showDialogSignOut by remember { mutableStateOf(false) }
+fun ScreenSettings(navController: NavController,darkTheme : Boolean, onThemeUpdated: () -> Unit){
 
 
     //Mevcut bottom bar rota bilgisini alır
     val currentRoute : String? = navController.currentBackStackEntryAsState().value?.destination?.route
 
 
+    //Firebase referansı
+    val auth = FirebaseAuth.getInstance()
 
+    //Sign Out Diyalog state değişkeni
+    var showDialogSignOut by remember { mutableStateOf(false) }
+
+
+    //Diyalog kısmı
     if (showDialogSignOut) {
         LogoutDialog(
             onConfirm = {
-                auth.signOut()  // Firebase'den çıkış
+                auth.signOut()
                 navController.navigate("login") {
-                    popUpTo(0) { inclusive = true } // Login ekranına kadar olan tüm ekranları temizle
-                    launchSingleTop = true // Sadece login ekranını aç
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
                 }
-
-                navController.popBackStack("login", false)
             },
-            onDismiss = { showDialogSignOut = false } // Dialog'u kapatma
+            onDismiss = { showDialogSignOut = false }
         )
     }
 
@@ -85,28 +100,116 @@ fun ScreenSettings(navController: NavController){
                     .padding(16.dp)
             ) {
 
-                item{
+                //Light/Dark kartı
+                item {
+
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                            .clickable { onThemeUpdated() },
+                        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.secondaryContainer),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(horizontalAlignment = Alignment.Start) {
+                                if (darkTheme) {
+                                    Text("Dark Theme")
+                                } else {
+                                    Text("Light Theme")
+                                }
+                            }
+
+                            val size = 70.dp
+                            val iconSize = 24.dp
+                            val offset by animateDpAsState(
+                                targetValue = if (darkTheme) 0.dp else size,
+                                animationSpec = tween(durationMillis = 300)
+                            )
+
+                            Box(modifier = Modifier.width(size * 2)) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(size)
+                                        .offset(x = offset)
+                                        .padding(10.dp)
+                                        .clip(shape = CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary)
+                                ) {}
+
+                                Row(
+                                    modifier = Modifier
+                                        .border(
+                                            border = BorderStroke(
+                                                width = 1.dp,
+                                                color = MaterialTheme.colorScheme.primary
+                                            ),
+                                            shape = CircleShape
+                                        )
+                                ) {
+                                    Box(
+                                        modifier = Modifier.size(size),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier.size(iconSize),
+                                            imageVector = Icons.Default.Nightlight,
+                                            contentDescription = "Night Mode Icon",
+                                            tint = if (darkTheme) MaterialTheme.colorScheme.secondaryContainer
+                                            else MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                    Box(
+                                        modifier = Modifier.size(size),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier.size(iconSize),
+                                            imageVector = Icons.Default.LightMode,
+                                            contentDescription = "Light Mode Icon",
+                                            tint = if (darkTheme) MaterialTheme.colorScheme.primary
+                                            else MaterialTheme.colorScheme.secondaryContainer
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+
+                //Log Out kartı
+                item {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp),
                         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.error),
                         onClick = {
-                           showDialogSignOut = true
+                            showDialogSignOut = true
                         }
                     ) {
-                        Row (
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
-                        ){
+                        ) {
                             Text("Log Out")
                             IconButton(onClick = {
                                 showDialogSignOut = true
                             }) {
-                                Icon(imageVector = Icons.Default.Logout , contentDescription = "Log Out")
+                                Icon(
+                                    imageVector = Icons.Default.Logout,
+                                    contentDescription = "Log Out"
+                                )
                             }
 
 
@@ -116,10 +219,10 @@ fun ScreenSettings(navController: NavController){
 
 
 
+
             }
-
-
         },
+        //Bottom bar
         bottomBar = {
             BottomAppBar {
 
@@ -189,6 +292,8 @@ fun ScreenSettings(navController: NavController){
     )
 
 }
+
+
 
 
 //Alert Dialog Compose'u
