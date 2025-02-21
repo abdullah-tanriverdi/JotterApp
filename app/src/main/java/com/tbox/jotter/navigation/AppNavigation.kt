@@ -1,21 +1,16 @@
 package com.tbox.jotter.navigation
 
-import android.app.Application
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.tbox.jotter.ScreenHome.ScreenSimpleNoteAdd
 import com.tbox.jotter.home.NoteDetailScreen
-import com.tbox.jotter.home.AddNoteScreen
 import com.tbox.jotter.auth.AuthViewModel
-import com.tbox.jotter.home.HomeScreen
+import com.tbox.jotter.ScreenHome.ScreenHome
 import com.tbox.jotter.home.SimpleNoteScreen
 import com.tbox.jotter.graph.GraphScreen
 
@@ -53,7 +48,7 @@ fun AppNavigation(  navController: NavHostController,
 
         composable("home"){
             val currentUser = FirebaseAuth.getInstance().currentUser
-            HomeScreen(navController= navController)
+            ScreenHome(navController= navController)
 
         }
 
@@ -74,7 +69,7 @@ fun AppNavigation(  navController: NavHostController,
 
         composable("addNote") {
             val currentUser = FirebaseAuth.getInstance().currentUser
-            AddNoteScreen(navController = navController, uid = currentUser?.uid ?: "")
+            ScreenSimpleNoteAdd(navController = navController, uid = currentUser?.uid ?: "")
         }
 
         composable("simpleNotes") {

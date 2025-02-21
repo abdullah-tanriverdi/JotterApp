@@ -1,4 +1,4 @@
-package com.tbox.jotter.home
+package com.tbox.jotter.ScreenHome
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.core.animateFloatAsState
@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.GridGoldenratio
 import androidx.compose.material.icons.filled.Home
@@ -32,6 +31,7 @@ import androidx.compose.material.icons.filled.VideoCall
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,6 +40,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,9 +57,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun HomeScreen(navController: NavController) {
+fun ScreenHome(navController: NavController) {
 
 
     // Arama  sorgusu için durum (state)
@@ -130,6 +133,21 @@ fun HomeScreen(navController: NavController) {
 
           }
       },
+        //TopBar
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Home",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            )
+        },
 
         //FAB tanımı
       floatingActionButton = {
@@ -205,12 +223,13 @@ fun HomeScreen(navController: NavController) {
         //Ana içerik
       content = {  paddingValues ->
           Column(modifier = Modifier
-              .padding(16.dp)
+              .padding(23.dp)
               .fillMaxSize()
 
           ) {
 
 
+             Spacer(modifier = Modifier.height(25.dp))
                   // Arama Kutusu
                   OutlinedTextField(
                       value = searchQuery,

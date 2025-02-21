@@ -19,12 +19,15 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,6 +44,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScreenProfileEdit (navController: NavController, userId: String?){
 
@@ -163,6 +167,21 @@ fun ScreenProfileEdit (navController: NavController, userId: String?){
 
 
     Scaffold (
+        //TopBar
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = " Edit Profile",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            )
+        },
 
         //Save FAB
         floatingActionButton = {
@@ -201,7 +220,7 @@ fun ScreenProfileEdit (navController: NavController, userId: String?){
             //Başlık alanı
             Text(
                 text = "Update Profile Information" ,
-                style = MaterialTheme.typography.headlineLarge,
+                style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(bottom = 24.dp)
             )

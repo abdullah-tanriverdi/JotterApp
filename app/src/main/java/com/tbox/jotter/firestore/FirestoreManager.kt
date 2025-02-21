@@ -3,44 +3,6 @@ package com.tbox.jotter.firestore
 import com.google.firebase.firestore.FirebaseFirestore
 
 
-fun addNoteToFirestore(
-    uid: String,
-    title: String,
-    content: String,
-    type: String,
-    tag: String?,
-    timestamp: String,
-    onSuccess: () -> Unit,
-    onFailure: (Exception) -> Unit
-){
-
-    val firestore = FirebaseFirestore.getInstance()
-    val noteData = hashMapOf(
-        "title" to title,
-        "content" to content,
-        "timestamp" to System.currentTimeMillis(),
-        "type" to type,
-        "timestamp" to timestamp
-
-    )
-    tag?.let {
-        noteData["tag"] = it
-    }
-
-
-    firestore.collection("users")
-        .document(uid)
-        .collection("simple_notes")
-        .add(noteData)
-        .addOnSuccessListener {
-            onSuccess()
-        }
-        .addOnFailureListener{ exception ->
-            onFailure(exception)
-
-        }
-
-}
 
 
 fun fetchNotesFromFirestore(
