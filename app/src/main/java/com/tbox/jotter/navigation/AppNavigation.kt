@@ -11,9 +11,8 @@ import com.tbox.jotter.ScreenHome.ScreenSimpleNoteAdd
 import com.tbox.jotter.home.NoteDetailScreen
 import com.tbox.jotter.auth.AuthViewModel
 import com.tbox.jotter.ScreenHome.ScreenHome
-import com.tbox.jotter.home.SimpleNoteScreen
+import com.tbox.jotter.ScreenHome.ScreenSimpleNote
 import com.tbox.jotter.graph.GraphScreen
-
 import com.tbox.jotter.splash.SplashScreen
 import com.tbox.jotter.login.LoginScreen
 import com.tbox.jotter.login.ResetScreen
@@ -74,7 +73,7 @@ fun AppNavigation(  navController: NavHostController,
 
         composable("simpleNotes") {
             val currentUser = FirebaseAuth.getInstance().currentUser
-            SimpleNoteScreen(navController = navController, uid = currentUser?.uid ?: "")
+            ScreenSimpleNote(navController = navController, uid = currentUser?.uid ?: "")
         }
 
 

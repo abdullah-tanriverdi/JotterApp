@@ -194,7 +194,7 @@ fun addNoteToFirestore(
     firestore.collection("users")
         .document(uid)
         .collection("notes")
-        .document("simples_notes")
+        .document("simple_notes")
         .collection("user_notes")
         .add(noteData)
         .addOnSuccessListener {

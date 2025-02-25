@@ -5,29 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 
 
-fun fetchNotesFromFirestore(
-    uid: String,
-    onNotesFetched: (List<Map<String, Any>>) -> Unit,
-    onFailure: (Exception) -> Unit
-) {
-    val firestore = FirebaseFirestore.getInstance()
 
-    firestore.collection("users")
-        .document(uid)
-        .collection("simple_notes")
-        .whereEqualTo("type", "simple")
-        .get()
-        .addOnSuccessListener { documents ->
-            val notes = documents.map { document ->
-                // Burada her dokümanın documentId'sini alıyoruz ve map'e ekliyoruz
-                document.data + ("noteId" to document.id)
-            }
-            onNotesFetched(notes)
-        }
-        .addOnFailureListener {
-            onFailure(it)
-        }
-}
 
 fun fetchNoteDetailFromFirestore(
     noteId: String,

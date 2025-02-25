@@ -1,4 +1,4 @@
-package com.tbox.jotter.home
+package com.tbox.jotter.ScreenHome
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -11,16 +11,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,21 +41,30 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.tbox.jotter.firestore.fetchNotesFromFirestore
-import java.text.SimpleDateFormat
-import java.util.Locale
+import com.google.firebase.firestore.FirebaseFirestore
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SimpleNoteScreen(navController: NavController, uid: String) {
+fun ScreenSimpleNote(navController: NavController, uid: String) {
+
+    //Firestoreden alınan notlar
     var notes by remember { mutableStateOf<List<Map<String, String>>>(emptyList()) }
+
+    //Filtrelenmiş notlar
     var filteredNotes by remember { mutableStateOf<List<Map<String, String>>>(emptyList()) }
+
+    //Seçilen tag
     var selectedTag by remember { mutableStateOf<String?>(null) }
 
-    var showSortMenu by remember { mutableStateOf(false) }
+
+    //Sıralama düzenini kontrol eder
     var isDescending by remember { mutableStateOf(true) }
 
-    // Firestore'dan basit notları çekiyoruz
+    //Loading durumu
+    var isLoading by remember { mutableStateOf(true) } // Yükleme durumunu takip eden state
+
+    // 'uid' değiştiğinde asenkron olarak veri çekerken LaunchedEffect kullanılır
     LaunchedEffect(uid) {
         fetchNotesFromFirestore(
             uid = uid,
@@ -66,101 +73,81 @@ fun SimpleNoteScreen(navController: NavController, uid: String) {
                     .filter { it["timestamp" ] != null }
                     .sortedByDescending { it["timestamp"]!!.toString() } as List<Map<String, String>>
                 filteredNotes = notes
+                isLoading = false
             },
             onFailure = { exception ->
                 println("Error fetching notes: ${exception.message}")
+                isLoading = false
             }
         )
     }
 
-
+    // Etiket tıklama fonksiyonu, notları seçilen etikete göre filtreler
     fun onTagClick(tag: String) {
         selectedTag = tag
         filteredNotes = if (selectedTag != null) {
-            notes.filter { it["tag"] == selectedTag } // Seçilen tag'e sahip olanları filtrele
+            notes.filter { it["tag"] == selectedTag }
         } else {
-            notes // Tüm notları göster
+            notes
         }
+
     }
+
+
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Simple Notes", color = MaterialTheme.colorScheme.onPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onPrimary)
-                    }
-                },
-                actions = {
-
-
-                        Box{
-                            IconButton(onClick = { showSortMenu = true }) {
-                                Icon(Icons.Filled.FilterList, contentDescription = "Filter", tint = MaterialTheme.colorScheme.onPrimary)
-                            }
-                            DropdownMenu(
-                                expanded = showSortMenu,
-                                onDismissRequest = { showSortMenu = false }
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text("En Eski") },
-                                    onClick = {
-                                        isDescending = false
-                                        notes = notes.sortedBy { it["timestamp"]!!.toString() } // Eskiden Yeniye
-                                        showSortMenu = false
-                                        filteredNotes = notes
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("En Yeni") },
-                                    onClick = {
-                                        isDescending = true
-                                        notes = notes.sortedByDescending { it["timestamp"]!!.toString() } // Yeniden Eskiye
-                                        showSortMenu = false
-                                        filteredNotes = notes
-                                    }
-                                )
-                            }
-                        }
-                    },
+            TopAppBar(
+                title = { Text("Simple Note", color = MaterialTheme.colorScheme.onPrimary) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
-                )
+                ),
+
             )
 
         }
     ) {
         paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues).padding(16.dp)) {
+        Column(modifier = Modifier
+            .padding(paddingValues)
+            .padding(16.dp)) {
 
-            // Eğer bir tag seçilmişse, bunu göster ve temizleme butonu ekle
-            selectedTag?.let {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Filtre: $it", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.weight(1f))
-                    AssistChip(
-                        label = { Text("Filtreyi Temizle") },
-                        onClick = { selectedTag = null
-                                  filteredNotes = notes},
-                        colors = AssistChipDefaults.assistChipColors(containerColor = MaterialTheme.colorScheme.error)
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            if (filteredNotes.isEmpty()) {
+            if (isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No Notes Yet", style = MaterialTheme.typography.bodyLarge)
+                    CircularProgressIndicator()
                 }
-            } else {
-                LazyColumn {
-                    items(filteredNotes) { note ->
-                        NoteCard(note, navController, onTagClick = ::onTagClick)
+
+            }else{
+                // Eğer bir tag seçilmişse, bunu göster ve temizleme butonu ekle
+                selectedTag?.let {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Filtre: $it", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.weight(1f))
+                        AssistChip(
+                            label = { Text("Filtreyi Temizle") },
+                            onClick = { selectedTag = null
+                                filteredNotes = notes},
+                            colors = AssistChipDefaults.assistChipColors(containerColor = MaterialTheme.colorScheme.error)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                if (filteredNotes.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("No Notes Yet", style = MaterialTheme.typography.bodyLarge)
+                    }
+                } else {
+                    LazyColumn {
+                        items(filteredNotes) { note ->
+                            NoteCard(note, navController, onTagClick = ::onTagClick)
+                        }
                     }
                 }
             }
+
         }
     }
 }
@@ -177,7 +164,7 @@ fun NoteCard(note: Map<String, String>, navController: NavController, onTagClick
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .clickable {
-                val noteId = note["noteId"]?: return@clickable
+                val noteId = note["noteId"] ?: return@clickable
 
                 navController.navigate("noteDetail/$noteId")
 
@@ -230,5 +217,31 @@ fun NoteCard(note: Map<String, String>, navController: NavController, onTagClick
 
 
 
+}
+
+
+fun fetchNotesFromFirestore(
+    uid: String,
+    onNotesFetched: (List<Map<String, Any>>) -> Unit,
+    onFailure: (Exception) -> Unit
+) {
+    val firestore = FirebaseFirestore.getInstance()
+
+    firestore.collection("users")
+        .document(uid)
+        .collection("notes")
+        .document("simple_notes")
+        .collection("user_notes")
+        .whereEqualTo("type", "simple")
+        .get()
+        .addOnSuccessListener { documents ->
+            val notes = documents.map { document ->
+                document.data + ("noteId" to document.id)
+            }
+            onNotesFetched(notes)
+        }
+        .addOnFailureListener {
+            onFailure(it)
+        }
 }
 
