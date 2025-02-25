@@ -1,4 +1,4 @@
-package com.tbox.jotter.home
+package com.tbox.jotter.ScreenHome
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.border
@@ -40,8 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.tbox.jotter.firestore.fetchNoteDetailFromFirestore
-import com.tbox.jotter.firestore.updateNoteInFirestore
+import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -50,7 +49,7 @@ import java.util.Locale
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteDetailScreen(noteId: String, uid: String, navController: NavController) {
+fun ScreenSimpleNoteDetail(noteId: String, uid: String, navController: NavController) {
     var noteDetails by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     var isLoading by remember { mutableStateOf(true) }  // Yükleniyor durumu ekliyoruz
     var errorMessage by remember { mutableStateOf<String?>(null) }  // Hata mesajı
@@ -78,12 +77,7 @@ fun NoteDetailScreen(noteId: String, uid: String, navController: NavController) 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("my NOtte", color = MaterialTheme.colorScheme.onPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onPrimary)
-                    }
-                },
+                title = { Text("Note Detail", color = MaterialTheme.colorScheme.onPrimary) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary, // App bar'ın arka plan rengini primary yapıyoruz
                 )
@@ -162,6 +156,21 @@ fun NoteDetailScreen(noteId: String, uid: String, navController: NavController) 
                                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
                                     keyboardActions = KeyboardActions(onDone = {
                                         isEditing = false
+                                        val timestamp = System.currentTimeMillis()
+                                        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                                        val formattedDate = dateFormat.format(Date(timestamp))
+                                        updateNoteInFirestore(
+                                            uid = uid,
+                                            noteId = noteId,
+                                            title = title,
+                                            content = content,
+                                            timestamp = formattedDate,
+                                            onSuccess = { isEditing = false
+                                                noteDetails = noteDetails.toMutableMap().apply {
+                                                    this["timestamp"] = formattedDate
+                                                }},
+                                            onFailure = { errorMessage = it.message }
+                                        )
                                     })
                                 )
                             } else {
@@ -191,6 +200,21 @@ fun NoteDetailScreen(noteId: String, uid: String, navController: NavController) 
                                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
                                     keyboardActions = KeyboardActions(onDone = {
                                         isEditing = false
+                                        val timestamp = System.currentTimeMillis()
+                                        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                                        val formattedDate = dateFormat.format(Date(timestamp))
+                                        updateNoteInFirestore(
+                                            uid = uid,
+                                            noteId = noteId,
+                                            title = title,
+                                            content = content,
+                                            timestamp = formattedDate,
+                                            onSuccess = { isEditing = false
+                                                noteDetails = noteDetails.toMutableMap().apply {
+                                                    this["timestamp"] = formattedDate
+                                                }},
+                                            onFailure = { errorMessage = it.message }
+                                        )
                                     })
                                 )
                             } else {
@@ -227,3 +251,66 @@ fun NoteDetailScreen(noteId: String, uid: String, navController: NavController) 
         }
     }
 }
+
+
+fun fetchNoteDetailFromFirestore(
+    noteId: String,
+    uid: String,
+    onNoteFetched: (Map<String, String>) -> Unit,
+    onFailure: (Exception) -> Unit
+) {
+    val firestore = FirebaseFirestore.getInstance()
+
+    firestore.collection("users")
+        .document(uid)
+        .collection("notes")
+        .document("simple_notes")
+        .collection("user_notes")
+        .document(noteId)
+        .get()
+        .addOnSuccessListener { document ->
+            if (document.exists()) {
+                val noteData = document.data?.mapValues { it.value.toString() } ?: emptyMap()
+                onNoteFetched(noteData)
+            } else {
+                onFailure(Exception("Note not found"))
+            }
+        }
+        .addOnFailureListener { exception ->
+            onFailure(exception)
+        }
+}
+
+
+
+
+
+fun updateNoteInFirestore(
+    uid: String,
+    noteId: String,
+    title: String,
+    content: String,
+    timestamp: String,
+    onSuccess: () -> Unit,
+    onFailure: (Exception) -> Unit
+) {
+    val firestore = FirebaseFirestore.getInstance()
+    val noteData = hashMapOf(
+        "title" to title,
+        "content" to content,
+        "timestamp" to timestamp
+    )
+
+    firestore.collection("users")
+        .document(uid)
+        .collection("notes")
+        .document("simple_notes")
+        .collection("user_notes")
+        .document(noteId)
+        .update(noteData as Map<String, Any>)
+        .addOnSuccessListener { onSuccess() }
+        .addOnFailureListener { exception -> onFailure(exception) }
+}
+
+
+

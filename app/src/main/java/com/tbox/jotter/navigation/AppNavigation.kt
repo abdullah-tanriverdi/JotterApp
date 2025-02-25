@@ -8,7 +8,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.tbox.jotter.ScreenHome.ScreenSimpleNoteAdd
-import com.tbox.jotter.home.NoteDetailScreen
+import com.tbox.jotter.ScreenHome.ScreenSimpleNoteDetail
 import com.tbox.jotter.auth.AuthViewModel
 import com.tbox.jotter.ScreenHome.ScreenHome
 import com.tbox.jotter.ScreenHome.ScreenSimpleNote
@@ -81,7 +81,7 @@ fun AppNavigation(  navController: NavHostController,
             val noteId = backStackEntry.arguments?.getString("noteId") ?: ""
             val currentUser = FirebaseAuth.getInstance().currentUser
             val uid = currentUser?.uid ?: ""
-            NoteDetailScreen(noteId = noteId, uid = uid, navController = navController)
+            ScreenSimpleNoteDetail(noteId = noteId, uid = uid, navController = navController)
         }
 
 
