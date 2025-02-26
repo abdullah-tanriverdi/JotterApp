@@ -1,5 +1,6 @@
 package com.tbox.jotter.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -12,6 +13,8 @@ import com.tbox.jotter.ScreenHome.ScreenSimpleNoteDetail
 import com.tbox.jotter.auth.AuthViewModel
 import com.tbox.jotter.ScreenHome.ScreenHome
 import com.tbox.jotter.ScreenHome.ScreenSimpleNote
+import com.tbox.jotter.ScreenHome.ScreenVideoList
+import com.tbox.jotter.ScreenHome.ScreenVideoNote
 import com.tbox.jotter.ScreenHome.ScreenVoiceNoteAdd
 import com.tbox.jotter.ScreenHome.ScreenVoiceNoteList
 import com.tbox.jotter.graph.GraphScreen
@@ -101,6 +104,15 @@ fun AppNavigation(  navController: NavHostController,
             ScreenVoiceNoteList(navController)
         }
 
+        composable("videoNote"){
+            ScreenVideoNote(navController)
+        }
+
+
+
+        composable("videoList"){
+            ScreenVideoList(navController)
+        }
 
 
 

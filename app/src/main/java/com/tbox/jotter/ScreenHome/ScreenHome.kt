@@ -208,6 +208,7 @@ fun ScreenHome(navController: NavController) {
                       SmallFloatingActionButton(
                           onClick = {
                               expanded = false
+                              navController.navigate("videoNote")
                           },
                           containerColor = MaterialTheme.colorScheme.secondary
                       ) {
@@ -288,7 +289,7 @@ fun ScreenHome(navController: NavController) {
                           Card(
                               modifier = Modifier
                                   .width(160.dp)
-                                  .clickable { println("Video Notes clicked") },
+                                  .clickable {  navController.navigate("videoList") },
                               shape = RoundedCornerShape(16.dp),
 
                               ) {

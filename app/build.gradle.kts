@@ -84,7 +84,8 @@ dependencies {
     implementation ("androidx.compose.material:material:1.5.1")
   
     implementation ("androidx.compose.material3:material3:1.2.0")
-
+    implementation ("androidx.media3:media3-exoplayer:1.2.0")
+    implementation ("androidx.media3:media3-ui:1.2.0")
 
 
 
