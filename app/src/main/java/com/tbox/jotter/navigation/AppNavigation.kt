@@ -17,7 +17,6 @@ import com.tbox.jotter.ScreenHome.ScreenVideoList
 import com.tbox.jotter.ScreenHome.ScreenVideoNote
 import com.tbox.jotter.ScreenHome.ScreenVoiceNoteAdd
 import com.tbox.jotter.ScreenHome.ScreenVoiceNoteList
-import com.tbox.jotter.graph.GraphScreen
 import com.tbox.jotter.splash.SplashScreen
 import com.tbox.jotter.login.LoginScreen
 import com.tbox.jotter.login.ResetScreen
@@ -67,9 +66,7 @@ fun AppNavigation(  navController: NavHostController,
             ScreenProfile(navController = navController)
         }
 
-        composable("graph"){
-            GraphScreen(navController= navController)
-        }
+
 
         composable("addNote") {
             val currentUser = FirebaseAuth.getInstance().currentUser

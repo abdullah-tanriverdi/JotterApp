@@ -105,23 +105,6 @@ fun ScreenHome(navController: NavController) {
               }
 
 
-
-              IconButton(onClick = { navController.navigate("setting") }, modifier = Modifier.weight(1f, true)) {
-                  Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                      Icon(Icons.Filled.Checklist, contentDescription = "To-Do", tint = settingIconTint)
-                      Text(text = "To-Do", style = MaterialTheme.typography.bodySmall, color = settingIconTint)
-                  }
-              }
-
-
-                //Graph Butonu
-              IconButton(onClick = { navController.navigate("graph") }, modifier = Modifier.weight(1f, true)) {
-                  Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                      Icon(Icons.Filled.GridGoldenratio, contentDescription = "Graph", tint = graphIconTint)
-                      Text(text = "Graph", style = MaterialTheme.typography.bodySmall, color = graphIconTint)
-                  }
-              }
-
               //Settings Butonu
               IconButton(onClick = { navController.navigate("setting") }, modifier = Modifier.weight(1f, true)) {
                   Column(horizontalAlignment = Alignment.CenterHorizontally) {
