@@ -63,8 +63,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 fun ScreenHome(navController: NavController) {
 
 
-    // Arama  sorgusu için durum (state)
-    var searchQuery by remember { mutableStateOf("") }
+
 
     //Geçerli rota bilgisi saklama (bottom bar)
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
@@ -195,8 +194,9 @@ fun ScreenHome(navController: NavController) {
                       //Sesli Not Ekleme Butonu
                       SmallFloatingActionButton(
                           onClick = {
-
+                              navController.navigate("voiceNotes")
                               expanded = false
+
                           },
                           containerColor = MaterialTheme.colorScheme.secondary
                       ) {
@@ -223,58 +223,18 @@ fun ScreenHome(navController: NavController) {
         //Ana içerik
       content = {  paddingValues ->
           Column(modifier = Modifier
-              .padding(23.dp)
+              .padding(16.dp)
               .fillMaxSize()
 
           ) {
 
 
-             Spacer(modifier = Modifier.height(25.dp))
-                  // Arama Kutusu
-                  OutlinedTextField(
-                      value = searchQuery,
-                      onValueChange = { searchQuery = it },
-                      label = { Text("Search Notes") },
-                      modifier = Modifier
-                          .fillMaxWidth()
-                          .padding(top = 40.dp),
-                      singleLine = true,
-                      leadingIcon = {
-                          Icon(
-                              imageVector = Icons.Default.Search,
-                              contentDescription = "Search Icon",
-                          )
-                      },
-                      shape = RoundedCornerShape(16.dp)
-                  )
+             Spacer(modifier = Modifier.height(20.dp))
 
-
-
-
-                  Spacer(modifier = Modifier.height(20.dp))
-
-              Button(
-                  onClick = { println("Meet New Assistant clicked") },
-                  modifier = Modifier
-                      .fillMaxWidth(),
-              ) {
-                  // Add the chatbot icon to the button
-                  Icon(
-                      imageVector = Icons.Filled.Chat,
-                      contentDescription = "Chatbot Icon",
-                      modifier = Modifier.padding(end = 8.dp) // Adds space between the icon and text
-                  )
-                  Text(text = "Meet New Assistant", style = MaterialTheme.typography.bodyLarge)
-              }
-
-
-
-
-              Spacer(modifier = Modifier.height(20.dp))
                 //Not kartlarını listeleyen yatay liste
                   LazyRow(
                       horizontalArrangement = Arrangement.spacedBy(16.dp),
-                      modifier = Modifier.fillMaxWidth().padding(top = 20.dp).height(450.dp)
+                      modifier = Modifier.fillMaxWidth().padding(top = 75.dp)
                   ) {
 
 
@@ -304,7 +264,10 @@ fun ScreenHome(navController: NavController) {
                           Card(
                               modifier = Modifier
                                   .width(160.dp)
-                                  .clickable { println("Voice Notes clicked") },
+                                  .clickable {
+                                      navController.navigate("voiceList")
+
+                                  },
                               shape = RoundedCornerShape(16.dp),
 
                               ) {
@@ -365,8 +328,7 @@ fun ScreenHome(navController: NavController) {
                   }
 
 
-
-
+              Spacer(modifier = Modifier.height(50.dp))
 
 
 

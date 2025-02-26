@@ -12,6 +12,8 @@ import com.tbox.jotter.ScreenHome.ScreenSimpleNoteDetail
 import com.tbox.jotter.auth.AuthViewModel
 import com.tbox.jotter.ScreenHome.ScreenHome
 import com.tbox.jotter.ScreenHome.ScreenSimpleNote
+import com.tbox.jotter.ScreenHome.ScreenVoiceNoteAdd
+import com.tbox.jotter.ScreenHome.ScreenVoiceNoteList
 import com.tbox.jotter.graph.GraphScreen
 import com.tbox.jotter.splash.SplashScreen
 import com.tbox.jotter.login.LoginScreen
@@ -87,6 +89,16 @@ fun AppNavigation(  navController: NavHostController,
 
         composable("profile_screen_edit"){
             ScreenProfileEdit(navController = navController , Firebase.auth.currentUser?.uid)
+        }
+
+
+        composable("voiceNotes"){
+            ScreenVoiceNoteAdd(navController)
+        }
+
+
+        composable("voiceList"){
+            ScreenVoiceNoteList(navController)
         }
 
 
