@@ -23,8 +23,7 @@ android {
             useSupportLibrary = true
         }
 
-
-
+        buildConfigField("String", "OPEN_API_KEY", "\"${project.property("OPEN_API_KEY")}\"")
 
     }
 
@@ -46,6 +45,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -95,6 +95,8 @@ dependencies {
     implementation ("androidx.media3:media3-ui:1.2.0")
 
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
+
+
 
 
 

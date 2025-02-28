@@ -26,6 +26,8 @@ data class Note(
     val timestamp: Long
 )
 
+
+
 class ChatViewModel : ViewModel() {
 
     private val _chatHistory = MutableStateFlow<List<String>>(emptyList())
@@ -92,11 +94,10 @@ class ChatViewModel : ViewModel() {
 
     private fun chatWithAI(userMessage: String, onComplete: (String) -> Unit) {
 
-        Log.d("API_KEY_DEBUG", "API Key: ${BuildConfig.OPENAI_API_KEY}")
 
 
 
-        val apiKey = BuildConfig.OPENAI_API_KEY
+        val apiKey = BuildConfig.OPEN_API_KEY
         val client = OkHttpClient()
 
         val formattedNotes = _notes.value.joinToString("\n") { "${it.title}: ${it.content}" }

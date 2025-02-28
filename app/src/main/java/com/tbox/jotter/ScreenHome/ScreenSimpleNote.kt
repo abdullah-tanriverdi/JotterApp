@@ -1,25 +1,39 @@
 package com.tbox.jotter.ScreenHome
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.DismissDirection
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assistant
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DismissValue
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,7 +41,9 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -39,12 +55,35 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
+fun Color.lighten(factor: Float): Color {
+    return Color(
+        red = min(1f, red + factor),
+        green = min(1f, green + factor),
+        blue = min(1f, blue + factor),
+        alpha = alpha
+    )
+}
+
+fun Color.darken(factor: Float): Color {
+    return Color(
+        red = max(0f, red - factor),
+        green = max(0f, green - factor),
+        blue = max(0f, blue - factor),
+        alpha = alpha
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,7 +138,7 @@ fun ScreenSimpleNote(navController: NavController, uid: String) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Simple Note", color = MaterialTheme.colorScheme.onPrimary) },
+                title = { Text("Simple Note", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.headlineLarge)  },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                 ),
@@ -154,7 +193,7 @@ fun ScreenSimpleNote(navController: NavController, uid: String) {
                 } else {
                     LazyColumn {
                         items(filteredNotes) { note ->
-                            NoteCard(note, navController, onTagClick = ::onTagClick)
+                            NoteCard(note, navController, onTagClick = ::onTagClick, onEdit = {}, onDelete = {})
                         }
                     }
                 }
@@ -166,8 +205,33 @@ fun ScreenSimpleNote(navController: NavController, uid: String) {
 
 
 @Composable
-fun NoteCard(note: Map<String, String>, navController: NavController, onTagClick: (String) -> Unit) {
-    val previewContent = note["content"]?.take(20)?.plus("...") ?: "No content available"
+fun NoteCard(
+    note: Map<String, String>,
+    navController: NavController,
+    onTagClick: (String) -> Unit,
+    onEdit: () ->Unit,
+    onDelete: () -> Unit) {
+
+
+    val titleText = note["title"]?.let {
+        if (it.length > 30) it.take(30) + "..." else it
+    } ?: "Untitled"
+
+    // İçerik metni için karakter limiti
+    val previewContent = note["content"]?.let {
+        if (it.length > 50) it.take(50) + "..." else it
+    } ?: "No content available"
+
+
+    // Temel renk: MaterialTheme'den primary rengi alınıyor.
+    val baseColor = MaterialTheme.colorScheme.tertiary
+    // Gradient için aynı rengin açık ve koyu tonlarını oluşturuyoruz.
+    val gradientColors = listOf(
+        baseColor.lighten(0.1f),
+        baseColor.darken(0.1f)
+    )
+
+    var expanded by remember { mutableStateOf(false) }
 
 
 
@@ -182,53 +246,88 @@ fun NoteCard(note: Map<String, String>, navController: NavController, onTagClick
 
             },
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground ),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // Başlık
-            Text(
-                text = note["title"] ?: "Untitled",
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(modifier = Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .background(brush = androidx.compose.ui.graphics.Brush.linearGradient(gradientColors))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                // Başlık
+                Text(
+                    text = titleText,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        letterSpacing = 0.5.sp,
+                        color = Color.Black
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(4.dp))
 
-            // İçeriğin ilk birkaç kelimesi
-            Text(
-                text = previewContent,
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = Color.Gray
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = previewContent,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        // Italic kaldırıldı; sadece hafif transparan onSurface rengi kullanılıyor.
+                        color = Color.Black.copy(alpha = 0.7f)
+                    ),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
 
-            // Tag ve zaman etiketi
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                note["tag"]?.takeIf { it.isNotEmpty() }?.let { tag ->
-                    AssistChip(
-                        label = { Text(tag) },
-                        onClick = {  onTagClick(tag)
-                        // tag tıklama
-                             },
-                        colors = AssistChipDefaults.assistChipColors(containerColor = MaterialTheme.colorScheme.secondary)
+                Spacer(modifier = Modifier.height(4.dp))
+                // Tag ve tarih etiketi
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    note["tag"]?.takeIf { it.isNotEmpty() }?.let { tag ->
+                        TagLabel(
+                            tag = tag,
+                            onClick = { onTagClick(tag) }
+                        )
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        text = note["timestamp"] ?: "No Date",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
-                Spacer(modifier = Modifier.weight(1f))
-                Text(text = note["timestamp"] ?: "No Date", style = MaterialTheme.typography.labelSmall)
+            }
+            IconButton(
+                onClick = { expanded = true },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "More options",
+                    tint = Color.Black
+                )
+            }
+            // Dropdown menü: üç nokta ikonuna tıklandığında seçenekler açılır
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Edit") },
+                    onClick = {
+                        expanded = false
+                        onEdit()
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Delete") },
+                    onClick = {
+                        expanded = false
+                        onDelete()
+                    }
+                )
             }
         }
-
-
-
     }
-
-
-
-
-
 }
 
 
@@ -255,5 +354,40 @@ fun fetchNotesFromFirestore(
         .addOnFailureListener {
             onFailure(it)
         }
+}
+
+
+
+
+
+
+@Composable
+fun TagLabel(
+    tag: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .clickable { onClick() }
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Küçük renk göstergesi (daire)
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.error,
+                    shape = CircleShape
+                )
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = tag,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error
+        )
+    }
 }
 
