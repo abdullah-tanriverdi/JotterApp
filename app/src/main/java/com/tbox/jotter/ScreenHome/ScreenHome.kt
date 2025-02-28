@@ -1,5 +1,6 @@
 package com.tbox.jotter.ScreenHome
 
+
 import android.annotation.SuppressLint
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
@@ -213,6 +214,7 @@ fun ScreenHome(navController: NavController) {
           ) {
 
 
+
              Spacer(modifier = Modifier.height(20.dp))
 
                 //Not kartlarını listeleyen yatay liste
@@ -308,6 +310,16 @@ fun ScreenHome(navController: NavController) {
                                   Text("Secret Notes", style = MaterialTheme.typography.bodyLarge)
                               }
                           }
+                      }
+
+                      item {
+                          Button(
+                              onClick = { navController.navigate("chat_screen") },
+                              modifier = Modifier.fillMaxWidth()
+                          ) {
+                              Text("Yapay Zeka Asistanını Aç")
+                          }
+
                       }
                   }
 

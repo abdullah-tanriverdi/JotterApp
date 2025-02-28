@@ -269,7 +269,7 @@ fun ScreenSettings(navController: NavController,darkTheme : Boolean, onThemeUpda
                     }
                 }
 
-                
+
                 //Settings Butonu
                 IconButton(onClick = { if (currentRoute !="setting"){
                     navController.navigate("setting") }

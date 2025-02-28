@@ -8,6 +8,8 @@ import androidx.navigation.compose.composable
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.tbox.jotter.ScreenAssistant.ChatScreen
+import com.tbox.jotter.ScreenAssistant.ChatViewModel
 import com.tbox.jotter.ScreenHome.ScreenSimpleNoteAdd
 import com.tbox.jotter.ScreenHome.ScreenSimpleNoteDetail
 import com.tbox.jotter.auth.AuthViewModel
@@ -32,6 +34,7 @@ fun AppNavigation(  navController: NavHostController,
                     authViewModel: AuthViewModel) {
     NavHost(navController = navController, startDestination = "splash") {
 
+        val chatViewModel = ChatViewModel()
         composable("splash"){
             SplashScreen(navController = navController, authViewModel = authViewModel)
         }
@@ -109,6 +112,10 @@ fun AppNavigation(  navController: NavHostController,
 
         composable("videoList"){
             ScreenVideoList(navController)
+        }
+
+        composable("chat_screen"){
+            ChatScreen(navController , chatViewModel)
         }
 
 
