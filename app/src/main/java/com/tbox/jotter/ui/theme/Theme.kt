@@ -36,16 +36,16 @@ private val LightColorScheme = lightColorScheme(
 
 // Koyu mod renk paleti
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF388E3C), // Koyu Yeşil (Primary)
-    secondary = Color(0xFF1976D2), // Koyu Mavi (Secondary)
-    tertiary = Color(0xFFFFB74D), //  (Tertiary)
-    background = Color(0xFF121212), // Koyu arka plan
-    surface = Color(0xFF121212), // Koyu yüzey
-    onPrimary = Color.Black, // Primary üzerindeki metin siyah
+    primary = Color(0xFF4CAF50),  // Yeşil (Primary)
+    secondary = Color(0xFF2196F3), // Mavi (Secondary)
+    tertiary = Color(0xFFE59300),  //  (Tertiary)
+    background = Color(0xFFF5F5F5), // Açık gri arka plan
+    surface = Color(0xFFFFFFFF), // Beyaz yüzey
+    onPrimary = Color.White, // Primary üzerindeki metin beyaz
     onSecondary = Color.White, // Secondary üzerindeki metin beyaz
     onTertiary = Color.Black, // Tertiary üzerindeki metin siyah
-    onBackground = Color.White, // Arka plandaki metin beyaz
-    onSurface = Color.White // Yüzeydeki metin beyaz
+    onBackground = Color.Black, // Arka plandaki metin siyah
+    onSurface = Color.Black // Yüzeydeki metin siyah,
 )
 
 
