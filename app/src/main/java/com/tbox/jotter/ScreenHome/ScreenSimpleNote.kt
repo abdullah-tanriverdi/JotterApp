@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assistant
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
@@ -53,6 +54,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -364,7 +366,7 @@ fun NoteCard(
                     text = titleText,
                     style = MaterialTheme.typography.titleMedium.copy(
                         letterSpacing = 0.5.sp,
-                        color = Color.Black
+                         color = MaterialTheme.colorScheme.onBackground
                     ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -375,7 +377,7 @@ fun NoteCard(
                     text = previewContent,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         // Italic kaldırıldı; sadece hafif transparan onSurface rengi kullanılıyor.
-                        color = Color.Black.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                     ),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -480,24 +482,21 @@ fun TagLabel(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier
-            .clickable { onClick() }
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.1f))
+            .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Küçük renk göstergesi (daire)
-        Box(
-            modifier = Modifier
-                .size(8.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.error,
-                    shape = CircleShape
-                )
+        Icon(
+            imageVector = Icons.Default.Label,
+            contentDescription = "Tag",
+            tint = MaterialTheme.colorScheme.error
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = tag,
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.error
         )
     }

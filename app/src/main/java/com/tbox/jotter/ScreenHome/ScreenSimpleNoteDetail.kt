@@ -1,15 +1,20 @@
 package com.tbox.jotter.ScreenHome
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -17,8 +22,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Label
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -36,227 +47,191 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScreenSimpleNoteDetail(noteId: String, uid: String, navController: NavController) {
-    var noteDetails by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-    var isLoading by remember { mutableStateOf(true) }  // Yükleniyor durumu ekliyoruz
-    var errorMessage by remember { mutableStateOf<String?>(null) }  // Hata mesajı
+fun ScreenSimpleNoteDetail(navController: NavController, uid: String, noteId: String) {
+    var noteDetails by remember { mutableStateOf<Map<String, String>?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+    var menuExpanded by remember { mutableStateOf(false) }
 
-    var isEditing by remember { mutableStateOf(false) }
-    var scrollState  = rememberScrollState()
-
-    var title by remember { mutableStateOf("") }
-    var content by remember { mutableStateOf("") }
-    // Firestore'dan notun detaylarını çekiyoruz
+    // Firestore'dan not detaylarını çek
     LaunchedEffect(noteId) {
-        fetchNoteDetailFromFirestore(noteId = noteId, uid = uid, onNoteFetched = { fetchedNote ->
-            noteDetails = fetchedNote
-
-            title = fetchedNote["title"] ?: ""
-            content = fetchedNote["content"] ?: ""
-
-            isLoading = false  // Veri geldi, loading durumu bitsin
-        }, onFailure = { exception ->
-            errorMessage = exception.message  // Hata mesajını alıyoruz
-            isLoading = false  // Yükleniyor durumu bitti
-        })
+        fetchNoteDetailsFromFirestore(
+            uid = uid,
+            noteId = noteId,
+            onSuccess = { note ->
+                noteDetails = note
+                isLoading = false
+            },
+            onFailure = { exception ->
+                println("Error fetching note: ${exception.message}")
+                isLoading = false
+            }
+        )
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Note Detail", color = MaterialTheme.colorScheme.onPrimary) },
+                title = { Text("Note Details", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.headlineLarge)  },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary, // App bar'ın arka plan rengini primary yapıyoruz
-                )
+                    containerColor = MaterialTheme.colorScheme.primary,
+                ),
+
+                actions = {
+                    // 3 Noktalı Menü Butonu
+                    Box {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "More options", tint = Color.White)
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false },
+                            offset = DpOffset(x = 0.dp, y = 8.dp) // Menü'nün 3 noktanın altına inmesini sağlar
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Sil", color = MaterialTheme.colorScheme.error) },
+                                onClick = {
+                                    menuExpanded = false
+                                    deleteNoteFromFirestore(
+                                        uid = uid,
+                                        noteId = noteId,
+                                        onSuccess = {
+                                            navController.popBackStack() // Not silindikten sonra geri dön
+                                        },
+                                        onFailure = { exception ->
+                                            println("Error deleting note: ${exception.message}")
+                                        }
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
             )
+
 
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    if (isEditing) {
-
-                        val timestamp = System.currentTimeMillis()
-                        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-                        val formattedDate = dateFormat.format(Date(timestamp))
-                        updateNoteInFirestore(
-                            uid = uid,
-                            noteId = noteId,
-                            title = title,
-                            content = content,
-                            timestamp = formattedDate,
-                            onSuccess = { isEditing = false
-                                noteDetails = noteDetails.toMutableMap().apply {
-                                    this["timestamp"] = formattedDate
-                                }},
-                            onFailure = { errorMessage = it.message }
-                        )
-                    } else {
-                        isEditing = true
-                    }
+                    navController.navigate("")
                 },
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.padding(bottom = 16.dp)
             ) {
-                Icon(if (isEditing) Icons.Filled.Check else Icons.Filled.Edit, contentDescription = "Edit or Save")
+                Icon(Icons.Default.Edit, contentDescription = "Edit Note")
             }
         }
+
+
     ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-            when {
-                isLoading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                }
-                errorMessage != null -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Error: $errorMessage", style = MaterialTheme.typography.bodyLarge)
-                    }
-                }
-                noteDetails.isEmpty() -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Note not found.", style = MaterialTheme.typography.bodyLarge)
-                    }
-                }
-                else -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
-                            .verticalScroll(scrollState)
-                    ) {
-                        Spacer(modifier = Modifier.height(24.dp))
+        Box(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator()
+            } else if (noteDetails != null) {
+                val note = noteDetails!!
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(20.dp)
+                        .verticalScroll(rememberScrollState()), // **Tam ekran kaydırma**
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
 
 
-                        Box(
+                        Text(
+                            text = note["title"] ?: "Untitled",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            letterSpacing = 0.5.sp,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        )
+                    Divider(
+                        color = Color.Gray,
+                        thickness = 2.dp,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    // İçerik
+                    Text(
+                        text = note["content"] ?: "No content available",
+                        style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+
+                    // Etiket (Tag)
+                    note["tag"]?.let {
+                        Row(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .border(1.dp, Color.Gray)
-                                .padding(8.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.error.copy(alpha = 0.1f))
+                                .padding(horizontal = 10.dp, vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            if (isEditing) {
-                                BasicTextField(
-                                    value = title,
-                                    onValueChange = { title = it },
-                                    textStyle = MaterialTheme.typography.headlineLarge,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                                    keyboardActions = KeyboardActions(onDone = {
-                                        isEditing = false
-                                        val timestamp = System.currentTimeMillis()
-                                        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-                                        val formattedDate = dateFormat.format(Date(timestamp))
-                                        updateNoteInFirestore(
-                                            uid = uid,
-                                            noteId = noteId,
-                                            title = title,
-                                            content = content,
-                                            timestamp = formattedDate,
-                                            onSuccess = { isEditing = false
-                                                noteDetails = noteDetails.toMutableMap().apply {
-                                                    this["timestamp"] = formattedDate
-                                                }},
-                                            onFailure = { errorMessage = it.message }
-                                        )
-                                    })
-                                )
-                            } else {
-                                Text(
-                                    text = title,
-                                    style = MaterialTheme.typography.headlineLarge,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .border(1.dp, Color.Gray)
-                                .padding(8.dp)
-                        ) {
-                            if (isEditing) {
-                                BasicTextField(
-                                    value = content,
-                                    onValueChange = { content = it },
-                                    textStyle = MaterialTheme.typography.bodyLarge,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                                    keyboardActions = KeyboardActions(onDone = {
-                                        isEditing = false
-                                        val timestamp = System.currentTimeMillis()
-                                        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-                                        val formattedDate = dateFormat.format(Date(timestamp))
-                                        updateNoteInFirestore(
-                                            uid = uid,
-                                            noteId = noteId,
-                                            title = title,
-                                            content = content,
-                                            timestamp = formattedDate,
-                                            onSuccess = { isEditing = false
-                                                noteDetails = noteDetails.toMutableMap().apply {
-                                                    this["timestamp"] = formattedDate
-                                                }},
-                                            onFailure = { errorMessage = it.message }
-                                        )
-                                    })
-                                )
-                            } else {
-                                Text(
-                                    text = content,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-
-                        ) {
-                            noteDetails["tag"]?.let { tag ->
-                                Text(
-                                    text = "Tag: $tag",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-
+                            Icon(
+                                imageVector = Icons.Default.Label,
+                                contentDescription = "Tag",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = noteDetails["timestamp"] ?: "No timestamp",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = it,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Tarih
+                    Text(
+                        text = "Created on: ${note["timestamp"] ?: "Unknown"}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                 }
+            } else {
+                Text("Note not found.", style = MaterialTheme.typography.bodyLarge)
             }
         }
     }
 }
 
 
-fun fetchNoteDetailFromFirestore(
-    noteId: String,
+
+
+// Firestore'dan belirli bir notun detaylarını çekme fonksiyonu
+fun fetchNoteDetailsFromFirestore(
     uid: String,
-    onNoteFetched: (Map<String, String>) -> Unit,
+    noteId: String,
+    onSuccess: (Map<String, String>) -> Unit,
     onFailure: (Exception) -> Unit
 ) {
     val firestore = FirebaseFirestore.getInstance()
@@ -270,47 +245,10 @@ fun fetchNoteDetailFromFirestore(
         .get()
         .addOnSuccessListener { document ->
             if (document.exists()) {
-                val noteData = document.data?.mapValues { it.value.toString() } ?: emptyMap()
-                onNoteFetched(noteData)
+                onSuccess(document.data as Map<String, String>)
             } else {
                 onFailure(Exception("Note not found"))
             }
         }
-        .addOnFailureListener { exception ->
-            onFailure(exception)
-        }
+        .addOnFailureListener { onFailure(it) }
 }
-
-
-
-
-
-fun updateNoteInFirestore(
-    uid: String,
-    noteId: String,
-    title: String,
-    content: String,
-    timestamp: String,
-    onSuccess: () -> Unit,
-    onFailure: (Exception) -> Unit
-) {
-    val firestore = FirebaseFirestore.getInstance()
-    val noteData = hashMapOf(
-        "title" to title,
-        "content" to content,
-        "timestamp" to timestamp
-    )
-
-    firestore.collection("users")
-        .document(uid)
-        .collection("notes")
-        .document("simple_notes")
-        .collection("user_notes")
-        .document(noteId)
-        .update(noteData as Map<String, Any>)
-        .addOnSuccessListener { onSuccess() }
-        .addOnFailureListener { exception -> onFailure(exception) }
-}
-
-
-
