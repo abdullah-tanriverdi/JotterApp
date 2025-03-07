@@ -22,8 +22,8 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.tbox.jotter.ScreenHome.darken
-import com.tbox.jotter.ScreenHome.lighten
+import com.tbox.jotter.ScreenQuickNotes.darken
+import com.tbox.jotter.ScreenQuickNotes.lighten
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

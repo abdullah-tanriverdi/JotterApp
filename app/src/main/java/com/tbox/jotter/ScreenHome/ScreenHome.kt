@@ -166,7 +166,7 @@ fun ScreenHome(navController: NavController) {
                       SmallFloatingActionButton(
                           onClick = {
                               expanded = false
-                              navController.navigate("addNote")
+                              navController.navigate("quick_notes_add")
 
                           },
                           containerColor = MaterialTheme.colorScheme.secondary
@@ -229,7 +229,7 @@ fun ScreenHome(navController: NavController) {
                           Card(
                               modifier = Modifier
                                   .width(160.dp)
-                                  .clickable { navController.navigate("simpleNotes") },
+                                  .clickable { navController.navigate("quick_notes") },
                               shape = RoundedCornerShape(16.dp),
 
                               ) {
