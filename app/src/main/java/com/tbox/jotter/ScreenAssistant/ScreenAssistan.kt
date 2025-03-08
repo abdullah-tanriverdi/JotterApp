@@ -20,8 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.tbox.jotter.ScreenQuickNotes.darken
 import com.tbox.jotter.ScreenQuickNotes.lighten
 
@@ -30,18 +28,22 @@ import com.tbox.jotter.ScreenQuickNotes.lighten
 fun ChatScreen(navController: NavController, viewModel: ChatViewModel) {
     var userMessage by remember { mutableStateOf("") }
     val chatHistory by viewModel.chatHistory.collectAsState()
-    var profileImageUrl by remember { mutableStateOf<String?>(null) }
-
+    val userProfile by viewModel.userProfile.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.fetchNotes()
-        fetchUserProfileImage { url -> profileImageUrl = url }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Jotter Chatbot", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.headlineLarge)  },
+                title = {
+                    Text(
+                        "Jotter Chatbot",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.headlineLarge
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                 ),
@@ -59,7 +61,7 @@ fun ChatScreen(navController: NavController, viewModel: ChatViewModel) {
                 reverseLayout = true
             ) {
                 items(chatHistory.reversed()) { message ->
-                    ChatBubble(message, profileImageUrl)
+                    ChatBubble(message, userProfile?.profileImageUrl)
                 }
             }
 
@@ -72,16 +74,14 @@ fun ChatScreen(navController: NavController, viewModel: ChatViewModel) {
                 OutlinedTextField(
                     value = userMessage,
                     onValueChange = { userMessage = it },
-                    placeholder = { Text("Mesajınızı yazın...") },
-                    modifier = Modifier
-                        .weight(1f),
+                    placeholder = { Text("Write your message...") },
+                    modifier = Modifier.weight(1f),
                     singleLine = true,
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = MaterialTheme.colorScheme.secondary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.secondary
                     )
                 )
-
 
                 Spacer(modifier = Modifier.width(12.dp))
 
@@ -121,16 +121,7 @@ fun ChatBubble(message: String, userProfileImageUrl: String?) {
             Spacer(modifier = Modifier.width(8.dp))
         }
 
-
-        // Temel renk: MaterialTheme'den primary rengi alınıyor.
         val baseColor = MaterialTheme.colorScheme.tertiary
-        // Gradient için aynı rengin açık ve koyu tonlarını oluşturuyoruz.
-        val gradientColors = listOf(
-            baseColor.lighten(0.1f),
-            baseColor.darken(0.1f)
-        )
-
-
 
         Box(
             modifier = Modifier
@@ -163,22 +154,4 @@ fun ProfileImage(imageUrl: String?) {
             .clip(CircleShape),
         contentScale = ContentScale.Crop
     )
-}
-
-fun fetchUserProfileImage(onImageFetched: (String?) -> Unit) {
-    val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-    val firestore = FirebaseFirestore.getInstance()
-
-    firestore.collection("users")
-        .document(uid)
-        .collection("profile")
-        .document("profile_data")
-        .get()
-        .addOnSuccessListener { document ->
-            val profileImageUrl = document.getString("profileImageUrl")
-            onImageFetched(profileImageUrl)
-        }
-        .addOnFailureListener {
-            onImageFetched(null)
-        }
 }
