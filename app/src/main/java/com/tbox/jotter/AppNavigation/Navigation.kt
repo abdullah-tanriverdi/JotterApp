@@ -10,6 +10,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.tbox.jotter.ScreenAssistant.ChatScreen
 import com.tbox.jotter.ScreenAssistant.ChatViewModel
 import com.tbox.jotter.ScreenHome.ScreenHome
+import com.tbox.jotter.ScreenProfile.ScreenProfile
+import com.tbox.jotter.ScreenProfile.ScreenProfileEdit
 import com.tbox.jotter.ScreenQuickNotes.ScreenQuickNotes
 import com.tbox.jotter.ScreenQuickNotes.ScreenQuickNotesAdd
 import com.tbox.jotter.ScreenQuickNotes.ScreenQuickNotesDetails
@@ -76,6 +78,16 @@ fun Navigation (
         composable("quick_notes_chatbot"){
             val chatViewModel = ChatViewModel()
             ChatScreen(navController = navController ,chatViewModel )
+        }
+
+
+        composable("profile"){
+            ScreenProfile(navController = navController )
+        }
+
+        composable("profile_edit"){
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            ScreenProfileEdit(navController = navController , userId = currentUser?.uid?: "")
         }
 
 

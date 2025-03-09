@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -60,10 +61,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -76,6 +87,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.storage
+import com.tbox.jotter.ScreenQuickNotes.darken
+import com.tbox.jotter.ScreenQuickNotes.lighten
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -267,6 +280,14 @@ fun ScreenProfile(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    // Temel renk: MaterialTheme'den primary rengi alınıyor.
+                    val baseColor = MaterialTheme.colorScheme.tertiary
+                    // Gradient için aynı rengin açık ve koyu tonlarını oluşturuyoruz.
+                    val gradientColors = listOf(
+                        baseColor.lighten(0.1f),
+                        baseColor.darken(0.1f)
+                    )
+
                     //Profil kutusu
                     Box(
                         modifier = Modifier
@@ -289,10 +310,13 @@ fun ScreenProfile(navController: NavController) {
                                 .size(150.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.surface)
-                                .border(4.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                                .border(6.dp, brush = androidx.compose.ui.graphics.Brush.linearGradient(gradientColors), CircleShape)
                                 .pointerInput(Unit) {
                                     detectTapGestures(
                                         onLongPress = {
+                                            showOptionsProfile = true
+                                        },
+                                        onTap = {
                                             showOptionsProfile = true
                                         }
                                     )
@@ -404,58 +428,67 @@ fun ScreenProfile(navController: NavController) {
 
                     //İsim alanı
                     name?.let {
+                        // İsim alanı
                         Text(
-                            text = it,
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = MaterialTheme.colorScheme.secondary
+                            text = name.takeIf { !it.isNullOrEmpty() } ?: "Kullanıcı",
+                            style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.secondary,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp)
                         )
+
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
 
                     //Gün alanı
-                    Text(
-                        text = "$daysSinceBirth days of living, learning, and growing!",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    )
-
-                    Spacer(modifier = Modifier.height(35.dp))
-
-
-                    // Kart Başlığı
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = "Personal Info Icon",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-
-                        Spacer(modifier = Modifier.width(8.dp))
-
+                    // Gün alanı
+                    AnnotatedString.Builder().apply {
+                        append("You've experienced ")
+                        pushStyle(SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary))
+                        append("$daysSinceBirth")
+                        pop()
+                        append(" days of adventure, growth, and endless possibilities! 🎉")
+                    }.let { text ->
                         Text(
-                            text = "Personal Info",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.primary
+                            text = text.toAnnotatedString(),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp)
                         )
                     }
 
 
+                    Spacer(modifier = Modifier.height(35.dp))
+
+
+                    AppleStyleCardHeader(title = "Personal Info", icon = Icons.Default.Info)
+
+
+
+
+
+
+
                     //Email
-                    email?.let { InfoRow(label = "Email ->", value = it) }
+                    email?.let {  AppleStyleInfoRow(label = "Email", value = it) }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
                     //Telefon numarası
-                    phoneNumber?.let { InfoRow(label = "Phone Number ->", value = it) }
+                    phoneNumber?.let { AppleStyleInfoRow(label = "Phone Number", value = it) }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
                     //Doğum tarihi
-                    birthDate?.let { InfoRow(label = "Date of Birth ->", value = it) }
+                    birthDate?.let {  AppleStyleInfoRow(label = "Date of Birth", value = it) }
+
+
 
                     Spacer(modifier = Modifier.height(24.dp))
 
@@ -468,55 +501,17 @@ fun ScreenProfile(navController: NavController) {
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                         thickness = 1.dp
                     )
-                    
+
 
 
                     //Kart başlığı
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Stars,
-                            contentDescription = "To Myself Icon",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Text(
-                            text = "To Myself",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
+                    AppleStyleCardHeader(title = "To Myself", icon = Icons.Default.Stars)
 
 
-                    //Bio alanı
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp)
-                            .shadow(4.dp, shape = MaterialTheme.shapes.medium),
-                        shape = MaterialTheme.shapes.medium,
+                   bio.let {
+                       AppleStyleBio(bio = it)
 
-                        ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                        ) {
-                            bio?.let {
-                                Text(
-                                    text = it,
-
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    lineHeight = 24.sp
-                                )
-                            }
-                        }
-                    }
+                   }
 
 
                     Spacer(modifier = Modifier.height(48.dp))
@@ -529,14 +524,14 @@ fun ScreenProfile(navController: NavController) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Profile",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        "Profile",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.headlineLarge
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+                    containerColor = MaterialTheme.colorScheme.primary,
+                ),
             )
         },
 
@@ -544,10 +539,10 @@ fun ScreenProfile(navController: NavController) {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    navController.navigate("profile_screen_edit")
+                    navController.navigate("profile_edit")
                 } ,
                 modifier = Modifier.padding(16.dp),
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor = MaterialTheme.colorScheme.secondary
             ) {
                     Icon(Icons.Default.ManageAccounts , contentDescription = "Manage Accounts")
 
@@ -584,56 +579,123 @@ fun ScreenProfile(navController: NavController) {
                 }
 
 
-                //Settings Butonu
-                IconButton(onClick = { navController.navigate("setting") }, modifier = Modifier.weight(1f, true)) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Filled.Settings, contentDescription = "Setting", tint = settingIconTint)
-                        Text(text = "Settings", style = MaterialTheme.typography.bodySmall, color = settingIconTint)
-                    }
-                }
+
 
             }
         }
     )
 
+}@Composable
+fun AppleStyleCardHeader(title: String, icon: ImageVector) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, top = 12.dp, bottom = 8.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // İkon (Apple tarzı, büyük ve minimalist)
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(28.dp)
+                    .padding(end = 8.dp)
+            )
+
+            // Başlık (Minimalist ve güçlü tipografi)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.5).sp
+                ),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+
+        // Altındaki İnce Çizgi (Apple’ın iOS tasarımına uygun)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.4f) // Çizginin uzunluğu
+                .height(2.dp)
+                .background(MaterialTheme.colorScheme.primary)
+                .padding(top = 4.dp)
+        )
+    }
 }
 
 
 
-//Personal info kart tasarımı
 @Composable
-fun InfoRow(label : String, value : String ) {
-    Card(
+fun AppleStyleBio(bio: String?) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 10.dp)
-            .shadow(4.dp, shape = MaterialTheme.shapes.medium),
-        shape = MaterialTheme.shapes.medium,
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        Column(
+        bio?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // Apple tarzı ince çizgi (soft ayraç)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .height(2.dp)
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f))
+        )
+    }
+}
+
+@Composable
+fun AppleStyleInfoRow(label: String, value: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+    ) {
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Etiket
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+            // Etiket (Minimal, sol tarafa hizalanmış)
+            Text(
+                text = label,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+            )
 
-                // Değer
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Değer (Apple tarzında sade ve net)
+            Text(
+                text = value,
+                modifier = Modifier.weight(3f),
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.Medium
+                ),
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.End
+            )
         }
+
+        // Apple Stili İnce Ayırıcı Çizgi
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+        )
     }
 }

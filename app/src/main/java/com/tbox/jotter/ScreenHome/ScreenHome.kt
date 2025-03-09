@@ -3,18 +3,24 @@ package com.tbox.jotter.ScreenHome
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
@@ -24,6 +30,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.GridGoldenratio
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Search
@@ -32,6 +39,7 @@ import androidx.compose.material.icons.filled.VideoCall
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -44,6 +52,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,11 +60,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.BlendMode.Companion.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-
-
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.tbox.jotter.ScreenQuickNotes.darken
+import com.tbox.jotter.ScreenQuickNotes.lighten
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,9 +82,40 @@ fun ScreenHome(navController: NavController) {
     //Geçerli rota bilgisi saklama (bottom bar)
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
-    //FAB genişleme durumu
-    var expanded by remember { mutableStateOf(false) }
+    val firestore = FirebaseFirestore.getInstance()
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
 
+    // Kullanıcı adı için cache (önbellek)
+    var userName by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+    var lastUpdated by remember { mutableStateOf(System.currentTimeMillis()) }
+
+    // **Firestore'dan kullanıcı adını çekme**
+    LaunchedEffect(userId, lastUpdated) {
+        userId?.let { uid ->
+            if (userName.isNullOrEmpty()) { // Eğer cache'de varsa tekrar çekme
+                firestore.collection("users")
+                    .document(uid)
+                    .collection("profile")
+                    .document("profile_data")
+                    .get()
+                    .addOnSuccessListener { document ->
+                        if (document.exists()) {
+                            val newName = document.getString("name") ?: ""
+                            if (newName != userName) {
+                                userName = newName
+                            }
+                        }
+                        isLoading = false
+                    }
+                    .addOnFailureListener {
+                        isLoading = false
+                    }
+            } else {
+                isLoading = false
+            }
+        }
+    }
 
 
 
@@ -97,8 +141,13 @@ fun ScreenHome(navController: NavController) {
                   }
               }
 
-                //Home Butonu
-              IconButton(onClick = { navController.navigate("home") }, modifier = Modifier.weight(1f, true)) {
+              // Home Butonu
+              IconButton(
+                  onClick = {
+                      if (currentRoute != "home") navController.navigate("home")
+                  },
+                  modifier = Modifier.weight(1f, true)
+              ) {
                   Column(horizontalAlignment = Alignment.CenterHorizontally) {
                       Icon(Icons.Default.Home, contentDescription = "Home", tint = homeIconTint)
                       Text(text = "Home", style = MaterialTheme.typography.bodySmall, color = homeIconTint)
@@ -106,13 +155,6 @@ fun ScreenHome(navController: NavController) {
               }
 
 
-              //Settings Butonu
-              IconButton(onClick = { navController.navigate("setting") }, modifier = Modifier.weight(1f, true)) {
-                  Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                      Icon(Icons.Filled.Settings, contentDescription = "Setting", tint = settingIconTint)
-                      Text(text = "Settings", style = MaterialTheme.typography.bodySmall, color = settingIconTint)
-                  }
-              }
 
           }
       },
@@ -121,220 +163,198 @@ fun ScreenHome(navController: NavController) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Home",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        "Jotter Home",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.headlineLarge
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+                    containerColor = MaterialTheme.colorScheme.primary,
+                ),
             )
         },
 
-        //FAB tanımı
-      floatingActionButton = {
-          Box(
-              modifier = Modifier.fillMaxSize(),
-              contentAlignment = Alignment.BottomEnd
 
-          ){
-              val rotation by animateFloatAsState(if(expanded) 45f else 0f)
+        content = { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // **🟢 Kullanıcı Karşılama Mesajı**
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp, horizontal = 16.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Column {
+                        Text(
+                            text = when {
+                                isLoading -> "Yükleniyor..."
+                                !userName.isNullOrEmpty() -> "Welcome, $userName "
+                                else -> "Hoş geldin! 😊"
+                            },
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
 
-              //Ana FAB
-              FloatingActionButton(
-                  onClick = { expanded = !expanded },
-                  modifier = Modifier.padding(end = 16.dp),
-                  containerColor = MaterialTheme.colorScheme.primary
-              ){
-                  Icon(
-                      imageVector = if (expanded) Icons.Filled.Close else Icons.Filled.Add,
-                      contentDescription = "Expanded FAB",
-                      modifier = Modifier.rotate(rotation)
-                  )
-              }
+                        Text(
+                            text = "What is recorded, not what is remembered, stays in mind.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
 
-              //FAB genişletiltiğinde küçük FAB butonları
-              if (expanded) {
-                  Column(
-                      horizontalAlignment = Alignment.End,
-                      verticalArrangement = Arrangement.spacedBy(12.dp),
-                      modifier = Modifier
-                          .padding(end = 16.dp, bottom = 80.dp)
-                  ) {
-                      // Yeni Not Ekleme Butonu
-                      SmallFloatingActionButton(
-                          onClick = {
-                              expanded = false
-                              navController.navigate("quick_notes_add")
+                // Temel renk: MaterialTheme'den primary rengi alınıyor.
+                val baseColor = MaterialTheme.colorScheme.tertiary
+                // Gradient için aynı rengin açık ve koyu tonlarını oluşturuyoruz.
+                val gradientColors = listOf(
+                    baseColor.lighten(0.1f),
+                    baseColor.darken(0.1f)
+                )
 
-                          },
-                          containerColor = MaterialTheme.colorScheme.secondary
-                      ) {
-                          Icon(Icons.Filled.EditNote, contentDescription = "Add Note")
-                      }
+                // 🔵 **Ana Menü Kartları (Quick Actions)**
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // 📌 **Yeni Not Ekle Kartı**
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(140.dp)
+                            .clickable { navController.navigate("quick_notes_add") },
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground ),
+                        colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(brush = androidx.compose.ui.graphics.Brush.linearGradient(gradientColors))
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.EditNote,
+                                contentDescription = "Not Ekle",
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                modifier = Modifier.size(56.dp)
+                            )
 
+                            Spacer(modifier = Modifier.width(16.dp))
 
-                      //Sesli Not Ekleme Butonu
-                      SmallFloatingActionButton(
-                          onClick = {
-                              navController.navigate("voiceNotes")
-                              expanded = false
+                            Column {
+                                Text(
+                                    text = "Add New Note",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                                Text(
+                                    text = "Quickly create a new note.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                            }
+                        }
+                    }
 
-                          },
-                          containerColor = MaterialTheme.colorScheme.secondary
-                      ) {
-                          Icon(Icons.Filled.RecordVoiceOver, contentDescription = "Voice Note")
-                      }
+                    // 📝 **Tüm Notlarım Kartı**
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(140.dp)
+                            .clickable { navController.navigate("quick_notes") },
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground ),
+                        colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(brush = androidx.compose.ui.graphics.Brush.linearGradient(gradientColors))
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.List,
+                                contentDescription = "Notlarım",
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                modifier = Modifier.size(56.dp)
+                            )
 
+                            Spacer(modifier = Modifier.width(16.dp))
 
-                      //Video Not Ekleme Butonu
-                      SmallFloatingActionButton(
-                          onClick = {
-                              expanded = false
-                              navController.navigate("videoNote")
-                          },
-                          containerColor = MaterialTheme.colorScheme.secondary
-                      ) {
-                          Icon(Icons.Filled.VideoCall, contentDescription = "Video Notes")
-                      }
-                  }
-              }
+                            Column {
+                                Text(
+                                    text = "View All Your Notes",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                                Text(
+                                    text = "Quickly review and edit your notes.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                            }
+                        }
+                    }
 
-          }
+                    // 🤖 **Sohbet Asistanı Kartı**
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(140.dp)
+                            .clickable { navController.navigate("quick_notes_chatbot") },
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground ),
+                        colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(brush = androidx.compose.ui.graphics.Brush.linearGradient(gradientColors))
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Chat,
+                                contentDescription = "Jotter Chatbot",
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                modifier = Modifier.size(56.dp)
+                            )
 
-      },
+                            Spacer(modifier = Modifier.width(16.dp))
 
-        //Ana içerik
-      content = {  paddingValues ->
-          Column(modifier = Modifier
-              .padding(16.dp)
-              .fillMaxSize()
+                            Column {
+                                Text(
+                                    text = "Jotter Assistant",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                                Text(
+                                    text = "Try the assistant that analyzes your notes and helps you!",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-          ) {
-
-
-
-             Spacer(modifier = Modifier.height(20.dp))
-
-                //Not kartlarını listeleyen yatay liste
-                  LazyRow(
-                      horizontalArrangement = Arrangement.spacedBy(16.dp),
-                      modifier = Modifier.fillMaxWidth().padding(top = 75.dp)
-                  ) {
-
-
-                      //Simple Note Kartı
-                      item {
-                          Card(
-                              modifier = Modifier
-                                  .width(160.dp)
-                                  .clickable { navController.navigate("quick_notes") },
-                              shape = RoundedCornerShape(16.dp),
-
-                              ) {
-                              Column(
-                                  modifier = Modifier
-                                      .fillMaxSize()
-                                      .padding(16.dp),
-                                  horizontalAlignment = Alignment.CenterHorizontally,
-                                  verticalArrangement = Arrangement.Center
-                              ) {
-                                  Icon(Icons.Filled.EditNote, contentDescription = "Simple Notes", tint = MaterialTheme.colorScheme.primary)
-                                  Text("Simple Notes", style = MaterialTheme.typography.bodyLarge)
-                              }
-                          }
-                      }
-
-                      item {
-                          Card(
-                              modifier = Modifier
-                                  .width(160.dp)
-                                  .clickable {
-                                      navController.navigate("voiceList")
-
-                                  },
-                              shape = RoundedCornerShape(16.dp),
-
-                              ) {
-                              Column(
-                                  modifier = Modifier
-                                      .fillMaxSize()
-                                      .padding(16.dp),
-                                  horizontalAlignment = Alignment.CenterHorizontally,
-                                  verticalArrangement = Arrangement.Center
-                              ) {
-                                  Icon(Icons.Filled.RecordVoiceOver, contentDescription = "Voice Notes", tint = MaterialTheme.colorScheme.primary)
-                                  Text("Voice Notes", style = MaterialTheme.typography.bodyLarge)
-                              }
-                          }
-                      }
-
-                      item {
-                          Card(
-                              modifier = Modifier
-                                  .width(160.dp)
-                                  .clickable {  navController.navigate("videoList") },
-                              shape = RoundedCornerShape(16.dp),
-
-                              ) {
-                              Column(
-                                  modifier = Modifier
-                                      .fillMaxSize()
-                                      .padding(16.dp),
-                                  horizontalAlignment = Alignment.CenterHorizontally,
-                                  verticalArrangement = Arrangement.Center
-                              ) {
-                                  Icon(Icons.Filled.VideoCall, contentDescription = "Video Notes", tint = MaterialTheme.colorScheme.primary)
-                                  Text("Video Notes", style = MaterialTheme.typography.bodyLarge)
-                              }
-                          }
-                      }
-
-                      item {
-                          Card(
-                              modifier = Modifier
-                                  .width(160.dp)
-                                  .clickable { println("Secret Notes clicked") },
-                              shape = RoundedCornerShape(16.dp),
-
-                              ) {
-                              Column(
-                                  modifier = Modifier
-                                      .fillMaxSize()
-                                      .padding(16.dp),
-                                  horizontalAlignment = Alignment.CenterHorizontally,
-                                  verticalArrangement = Arrangement.Center
-                              ) {
-                                  Icon(Icons.Filled.Lock, contentDescription = "Secret Notes", tint = MaterialTheme.colorScheme.primary)
-                                  Text("Secret Notes", style = MaterialTheme.typography.bodyLarge)
-                              }
-                          }
-                      }
-
-                      item {
-                          Button(
-                              onClick = { navController.navigate("chat_screen") },
-                              modifier = Modifier.fillMaxWidth()
-                          ) {
-                              Text("Yapay Zeka Asistanını Aç")
-                          }
-
-                      }
-                  }
-
-
-              Spacer(modifier = Modifier.height(50.dp))
-
-
-
-          }
-      }
-  )
-
-
+    )
 }
-
 
 
 
