@@ -92,10 +92,12 @@ class AuthViewModel(): ViewModel() {
 
 
 
-    fun signout(){
+    fun signout(onSignoutComplete: () -> Unit) {
         authService.signOut()
         _authState.value = AuthState.Unauthenticated
+        onSignoutComplete() // 🔹 Çıkış tamamlandıktan sonra işlem yap
     }
+
 
 
 

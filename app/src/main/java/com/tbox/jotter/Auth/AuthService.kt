@@ -27,7 +27,7 @@ class AuthService(private val auth : FirebaseAuth) {
     }
 
     fun signOut() {
-        auth.signOut()
+       FirebaseAuth.getInstance().signOut()
     }
 
 

@@ -2,6 +2,7 @@ package com.tbox.jotter.ScreenHome
 
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -70,6 +71,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.tbox.jotter.Auth.AuthService
 import com.tbox.jotter.Auth.AuthViewModel
 import com.tbox.jotter.ScreenQuickNotes.darken
 import com.tbox.jotter.ScreenQuickNotes.lighten
@@ -196,17 +198,24 @@ fun ScreenHome(navController: NavController) {
                     title = { Text("Sign Out") },
                     text = { Text("Are you sure you want to exit the app?") },
                     confirmButton = {
-                        TextButton(
-                            onClick = {
-                                showDialog = false
-                                authViewModel.signout() //  Çıkış işlemi
-                                navController.navigate("login") {
-                                    popUpTo("0") { inclusive = true } //  Home geçmişini temizle
+
+                                TextButton(
+                                    onClick = {
+                                        showDialog = false
+                                        authViewModel.signout {
+                                            val activity = navController.context as? Activity
+                                            activity?.finishAffinity() // 🔹 Uygulamayı tamamen kapat
+
+                                            navController.navigate("login") {
+                                                popUpTo(0) { inclusive = true } // 🔹 Tüm ekranları temizle ve login ekranına yönlendir
+                                            }
+                                        }
+                                    }
+                                ) {
+                                    Text("Yes", color = MaterialTheme.colorScheme.error)
                                 }
-                            }
-                        ) {
-                            Text("Yes", color = MaterialTheme.colorScheme.error)
-                        }
+
+
                     },
                     dismissButton = {
                         TextButton(onClick = { showDialog = false }) {
@@ -262,7 +271,7 @@ fun ScreenHome(navController: NavController) {
                     baseColor.darken(0.1f)
                 )
 
-                // 🔵 **Ana Menü Kartları (Quick Actions)**
+                // **Ana Menü Kartları (Quick Actions)**
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
