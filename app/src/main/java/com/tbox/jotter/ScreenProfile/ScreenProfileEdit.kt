@@ -467,13 +467,14 @@ fun ScreenProfileEdit (navController: NavController, userId: String?) {
                     //Bio alanı
                     // Bio alanı
                 // Minimum Bio Uzunluğu
-                val minBioLength =10
+                val minBioLength = 10
+
 // Bio Alanı
                 OutlinedTextField(
                     value = bio,
-                    onValueChange = {
-                        bio = it.trim()
-                        bioError = bio.isBlank() || bio.length < minBioLength
+                    onValueChange = { newText ->
+                        bio = newText
+                        bioError = newText.isBlank() || newText.trim().length < minBioLength
                     },
                     label = { Text("To Myself") },
                     placeholder = { Text("The main idea of your life") },
@@ -497,7 +498,7 @@ fun ScreenProfileEdit (navController: NavController, userId: String?) {
                 if (bioError) {
                     val errorMessage = when {
                         bio.isBlank() -> "Bio cannot be empty"
-                        bio.length < minBioLength -> "Bio must be at least $minBioLength characters long"
+                        bio.trim().length < minBioLength -> "Bio must be at least $minBioLength characters long"
                         else -> null
                     }
                     errorMessage?.let {
@@ -509,6 +510,7 @@ fun ScreenProfileEdit (navController: NavController, userId: String?) {
                         )
                     }
                 }
+
 
 
 

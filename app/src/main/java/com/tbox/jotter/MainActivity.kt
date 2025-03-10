@@ -11,7 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.navigation.compose.rememberNavController
 import com.tbox.jotter.AppNavigation.Navigation
-import com.tbox.jotter.auth.AuthViewModel
+import com.tbox.jotter.Auth.AuthViewModel
 import com.tbox.jotter.ui.theme.JotterTheme
 
 class MainActivity : ComponentActivity() {

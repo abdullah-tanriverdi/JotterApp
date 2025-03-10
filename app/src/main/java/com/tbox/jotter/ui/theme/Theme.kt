@@ -13,14 +13,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.tbox.jotter.PoppinsFont
+import com.tbox.jotter.R
 
+
+val PoppinsFont = FontFamily(
+    Font(R.font.poppins_bold, FontWeight.Bold),
+    Font(R.font.poppins_semi_bold, FontWeight.SemiBold),
+    Font(R.font.poppins_thin, FontWeight.Thin),
+    Font(R.font.poppins_medium, FontWeight.Medium),
+    Font(R.font.poppins_regular, FontWeight.Normal),
+    Font(R.font.poppins_light, FontWeight.Light)
+)
 
 // Açık mod renk paleti
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF4CAF50),  // Yeşil (Primary)
+    primary = Color(0xFF2196F3),  // Yeşil (Primary)
     secondary = Color(0xFF2196F3), // Mavi (Secondary)
     tertiary = Color(0xFFE59300),  //  (Tertiary)
     background = Color(0xFFF5F5F5), // Açık gri arka plan
@@ -36,7 +47,7 @@ private val LightColorScheme = lightColorScheme(
 
 // Koyu mod renk paleti
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF4CAF50),  // Yeşil (Primary)
+    primary = Color(0xFF2196F3),  // Yeşil (Primary)
     secondary = Color(0xFF2196F3), // Mavi (Secondary)
     tertiary = Color(0xFFE59300),  //  (Tertiary)
     background = Color(0xFFF5F5F5), // Açık gri arka plan

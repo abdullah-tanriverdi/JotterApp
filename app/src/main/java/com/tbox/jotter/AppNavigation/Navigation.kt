@@ -2,7 +2,7 @@ package com.tbox.jotter.AppNavigation
 
 
 import androidx.navigation.NavHostController
-import com.tbox.jotter.auth.AuthViewModel
+import com.tbox.jotter.Auth.AuthViewModel
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -17,8 +17,10 @@ import com.tbox.jotter.ScreenQuickNotes.ScreenQuickNotes
 import com.tbox.jotter.ScreenQuickNotes.ScreenQuickNotesAdd
 import com.tbox.jotter.ScreenQuickNotes.ScreenQuickNotesDetails
 import com.tbox.jotter.ScreenQuickNotes.ScreenQuickNotesEdit
-import com.tbox.jotter.login.LoginScreen
-import com.tbox.jotter.splash.SplashScreen
+import com.tbox.jotter.ScreenRegistration.ScreenLogin
+import com.tbox.jotter.ScreenRegistration.ScreenReset
+import com.tbox.jotter.ScreenSplash.ScreenSplash
+import com.tbox.jotter.signup.ScreenSignUp
 
 
 @Composable
@@ -31,7 +33,7 @@ fun Navigation (
 
 
         composable("splash"){
-            SplashScreen(navController = navController, authViewModel = authViewModel)
+            ScreenSplash(navController = navController, authViewModel = authViewModel)
         }
 
         composable("permission"){
@@ -96,7 +98,17 @@ fun Navigation (
         }
 
         composable("login"){
-            LoginScreen(navController = navController,authViewModel = authViewModel)
+            ScreenLogin(navController = navController,authViewModel = authViewModel)
+        }
+
+
+        composable("signup"){
+            ScreenSignUp(navController = navController, authViewModel = authViewModel)
+        }
+
+
+        composable("reset"){
+            ScreenReset(navController = navController,authViewModel = authViewModel)
         }
 
 

@@ -87,6 +87,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.storage
+import com.tbox.jotter.Auth.AuthViewModel
 import com.tbox.jotter.ScreenQuickNotes.darken
 import com.tbox.jotter.ScreenQuickNotes.lighten
 import kotlinx.coroutines.tasks.await
@@ -114,6 +115,7 @@ fun ScreenProfile(navController: NavController) {
     val firestore: FirebaseFirestore = Firebase.firestore
     val storage: FirebaseStorage = Firebase.storage
     val auth: FirebaseAuth = Firebase.auth
+
 
     //Kullanıcı ID'sini erişim
     val userId :String? = auth.currentUser?.uid
@@ -310,7 +312,7 @@ fun ScreenProfile(navController: NavController) {
                                 .size(150.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.surface)
-                                .border(6.dp, brush = androidx.compose.ui.graphics.Brush.linearGradient(gradientColors), CircleShape)
+                                .border(6.dp, color = MaterialTheme.colorScheme.secondary, CircleShape)
                                 .pointerInput(Unit) {
                                     detectTapGestures(
                                         onLongPress = {
@@ -430,7 +432,7 @@ fun ScreenProfile(navController: NavController) {
                     name?.let {
                         // İsim alanı
                         Text(
-                            text = name.takeIf { !it.isNullOrEmpty() } ?: "Kullanıcı",
+                            text = name.takeIf { !it.isNullOrEmpty() } ?: "User",
                             style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.secondary,
                             textAlign = TextAlign.Center,
@@ -552,10 +554,10 @@ fun ScreenProfile(navController: NavController) {
             BottomAppBar {
 
                 //İkonların seçili olup olmadığına göre renk belirleme
-                val homeIconTint = if (currentRoute == "home") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                val settingIconTint = if (currentRoute == "setting") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                val profileIconTint = if (currentRoute == "profile") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                val graphIconTint = if (currentRoute == "graph") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+                val homeIconTint = if (currentRoute == "home") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                val settingIconTint = if (currentRoute == "setting") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                val profileIconTint = if (currentRoute == "profile") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                val graphIconTint = if (currentRoute == "graph") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
 
                 //Profil Butonu
                 IconButton(onClick = {   if (currentRoute != "profile") {
@@ -665,30 +667,27 @@ fun AppleStyleInfoRow(label: String, value: String) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Etiket (Minimal, sol tarafa hizalanmış)
+            // Etiket (Sol tarafa hizalanmış)
             Text(
                 text = label,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f), // 🔹 Dinamik genişlik ayarı yapıldı
                 style = MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = FontWeight.SemiBold
                 ),
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             )
 
-            Spacer(modifier = Modifier.width(8.dp))
+            // Spacer ile metinler arasında boşluk bırakıldı
+            Spacer(modifier = Modifier.width(16.dp))
 
-            // Değer (Apple tarzında sade ve net)
+            // Değer (Apple tarzında sade ve net, sağa hizalanmış)
             Text(
                 text = value,
-                modifier = Modifier.weight(3f),
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.Medium
-                ),
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.End
+                modifier = Modifier.weight(1f), // 🔹 Sağ taraf için de dinamik genişlik ayarı
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -701,3 +700,4 @@ fun AppleStyleInfoRow(label: String, value: String) {
         )
     }
 }
+

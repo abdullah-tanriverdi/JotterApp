@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.GridGoldenratio
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VideoCall
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -49,6 +51,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -67,6 +70,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.tbox.jotter.Auth.AuthViewModel
 import com.tbox.jotter.ScreenQuickNotes.darken
 import com.tbox.jotter.ScreenQuickNotes.lighten
 
@@ -89,6 +93,9 @@ fun ScreenHome(navController: NavController) {
     var userName by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var lastUpdated by remember { mutableStateOf(System.currentTimeMillis()) }
+
+    var showDialog by remember { mutableStateOf(false) }
+    val authViewModel = AuthViewModel()
 
     // **Firestore'dan kullanıcı adını çekme**
     LaunchedEffect(userId, lastUpdated) {
@@ -128,10 +135,10 @@ fun ScreenHome(navController: NavController) {
           BottomAppBar {
 
               //İkonların seçili olup olmadığına göre renk belirleme
-              val homeIconTint = if (currentRoute == "home") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-              val settingIconTint = if (currentRoute == "setting") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-              val profileIconTint = if (currentRoute == "profile") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-              val graphIconTint = if (currentRoute == "graph") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+              val homeIconTint = if (currentRoute == "home") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+              val settingIconTint = if (currentRoute == "setting") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+              val profileIconTint = if (currentRoute == "profile") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+              val graphIconTint = if (currentRoute == "graph") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
 
               //Profil Butonu
               IconButton(onClick = { navController.navigate("profile") }, modifier = Modifier.weight(1f, true)) {
@@ -171,7 +178,43 @@ fun ScreenHome(navController: NavController) {
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                 ),
+                actions = {
+                    IconButton(onClick = { showDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.ExitToApp, // 🔹 Çıkış butonu ikonu
+                            contentDescription = "Logout",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
             )
+
+            // 📌 Çıkış Onay Diyaloğu
+            if (showDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDialog = false },
+                    title = { Text("Sign Out") },
+                    text = { Text("Are you sure you want to exit the app?") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showDialog = false
+                                authViewModel.signout() //  Çıkış işlemi
+                                navController.navigate("login") {
+                                    popUpTo("0") { inclusive = true } //  Home geçmişini temizle
+                                }
+                            }
+                        ) {
+                            Text("Yes", color = MaterialTheme.colorScheme.error)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDialog = false }) {
+                            Text("No", color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                )
+            }
         },
 
 
@@ -185,7 +228,7 @@ fun ScreenHome(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // **🟢 Kullanıcı Karşılama Mesajı**
+                // ** Kullanıcı Karşılama Mesajı**
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -197,7 +240,7 @@ fun ScreenHome(navController: NavController) {
                             text = when {
                                 isLoading -> "Yükleniyor..."
                                 !userName.isNullOrEmpty() -> "Welcome, $userName "
-                                else -> "Hoş geldin! 😊"
+                                else -> "Welcome!"
                             },
                             style = MaterialTheme.typography.headlineLarge,
                             color = MaterialTheme.colorScheme.primary
@@ -228,7 +271,7 @@ fun ScreenHome(navController: NavController) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(140.dp)
+                            .height(130.dp)
                             .clickable { navController.navigate("quick_notes_add") },
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground ),
@@ -266,11 +309,11 @@ fun ScreenHome(navController: NavController) {
                         }
                     }
 
-                    // 📝 **Tüm Notlarım Kartı**
+                    //  **Tüm Notlarım Kartı**
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(140.dp)
+                            .height(130.dp)
                             .clickable { navController.navigate("quick_notes") },
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground ),
@@ -308,11 +351,11 @@ fun ScreenHome(navController: NavController) {
                         }
                     }
 
-                    // 🤖 **Sohbet Asistanı Kartı**
+                    //  **Sohbet Asistanı Kartı**
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(140.dp)
+                            .height(130.dp)
                             .clickable { navController.navigate("quick_notes_chatbot") },
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground ),
