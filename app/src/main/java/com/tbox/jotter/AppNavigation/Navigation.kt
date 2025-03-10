@@ -10,12 +10,14 @@ import com.google.firebase.auth.FirebaseAuth
 import com.tbox.jotter.ScreenAssistant.ChatScreen
 import com.tbox.jotter.ScreenAssistant.ChatViewModel
 import com.tbox.jotter.ScreenHome.ScreenHome
+import com.tbox.jotter.ScreenPermission.PermissionScreen
 import com.tbox.jotter.ScreenProfile.ScreenProfile
 import com.tbox.jotter.ScreenProfile.ScreenProfileEdit
 import com.tbox.jotter.ScreenQuickNotes.ScreenQuickNotes
 import com.tbox.jotter.ScreenQuickNotes.ScreenQuickNotesAdd
 import com.tbox.jotter.ScreenQuickNotes.ScreenQuickNotesDetails
 import com.tbox.jotter.ScreenQuickNotes.ScreenQuickNotesEdit
+import com.tbox.jotter.login.LoginScreen
 import com.tbox.jotter.splash.SplashScreen
 
 
@@ -25,13 +27,16 @@ fun Navigation (
     authViewModel: AuthViewModel
 ){
 
-    NavHost(navController = navController , startDestination = "splash" ){
+    NavHost(navController = navController , startDestination = "permission" ){
 
 
         composable("splash"){
             SplashScreen(navController = navController, authViewModel = authViewModel)
         }
 
+        composable("permission"){
+            PermissionScreen(navController)
+        }
 
 
         composable("home"){
@@ -88,6 +93,10 @@ fun Navigation (
         composable("profile_edit"){
             val currentUser = FirebaseAuth.getInstance().currentUser
             ScreenProfileEdit(navController = navController , userId = currentUser?.uid?: "")
+        }
+
+        composable("login"){
+            LoginScreen(navController = navController,authViewModel = authViewModel)
         }
 
 

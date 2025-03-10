@@ -1,47 +1,42 @@
 package com.tbox.jotter.splash
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import com.tbox.jotter.R
 import com.tbox.jotter.auth.AuthViewModel
 import kotlinx.coroutines.delay
 
-
 @Composable
-fun SplashScreen(navController: NavController , authViewModel: AuthViewModel){
-
+fun SplashScreen(navController: NavController, authViewModel: AuthViewModel) {
     val authState by authViewModel.authState.observeAsState()
 
-    LaunchedEffect(authState) {
-        delay(500)
-        when(authState) {
+    LaunchedEffect(Unit) {
+        delay(500) // Splash süresi
+
+        when (authState) {
             is AuthViewModel.AuthState.Authenicated -> {
-                navController.navigate("home"){
-                    popUpTo("splash") { inclusive=true }
+                navController.navigate("home") {
+                    popUpTo("splash") { inclusive = true }
                 }
             }
-
             is AuthViewModel.AuthState.Unauthenticated, null -> {
-                navController.navigate("login"){
-                    popUpTo("splash"){ inclusive=true }
+                navController.navigate("login") {
+                    popUpTo("splash") { inclusive = true }
                 }
             }
-
-            else -> {
-
-            }
+            else -> {}
         }
     }
 
@@ -50,13 +45,11 @@ fun SplashScreen(navController: NavController , authViewModel: AuthViewModel){
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.primary),
         contentAlignment = Alignment.Center
-
-    ){
+    ) {
         Image(
-            painter = painterResource(id = R.drawable.jotter_unbackground), // Görselin id'si
-            contentDescription = "Logo", // Görselin açıklaması
-            modifier = Modifier.wrapContentSize() // Görsel boyutunun içeriğe uygun olmasını sağlar
+            painter = painterResource(id = R.drawable.jotter_unbackground),
+            contentDescription = "Logo",
+            modifier = Modifier.wrapContentSize()
         )
     }
-
 }

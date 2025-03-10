@@ -570,7 +570,9 @@ fun ScreenProfile(navController: NavController) {
 
                 //Home Butonu
                 IconButton(onClick = {
-                        navController.navigate("home")
+                    navController.navigate("home") {
+                        popUpTo(0) { inclusive = true } // Tüm stack'i temizler
+                    }
                 }, modifier = Modifier.weight(1f, true)) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(Icons.Default.Home, contentDescription = "Home", tint = homeIconTint)
