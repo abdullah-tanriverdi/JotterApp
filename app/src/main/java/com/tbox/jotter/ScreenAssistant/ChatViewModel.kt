@@ -111,7 +111,7 @@ class ChatViewModel : ViewModel() {
     private fun sendInitialMessage(){
         if (_chatHistory.value.isEmpty()) {
             _chatHistory.value = listOf(
-                "Asistan: Hi! I'm Jotter, specially developed by T-Box!" +
+                "Asistan: Hi! I'm Jotter, specially developed by Tovax Technology!" +
                         " I can organize your notes, remind you of them, and even have a little chat." +
                         " Feel free to ask me anything!"
 
@@ -169,80 +169,103 @@ class ChatViewModel : ViewModel() {
         val userProfile = _userProfile.value
 
 
+        val analyzedNotes = _notes.value.sortedByDescending { it.timestamp }
 
-        val formattedNotes = _notes.value.joinToString("\n\n") { note ->
+// **Instant Note Analysis (Immediate Results)**
+        val mostFrequentTag = analyzedNotes
+            .groupingBy { it.tag }
+            .eachCount()
+            .maxByOrNull { it.value }?.key ?: "General"
+
+        val recentNote = analyzedNotes.firstOrNull()?.content ?: "No notes have been added yet."
+        val totalNotes = analyzedNotes.size
+        val oldestNoteDate = analyzedNotes.lastOrNull()?.timestamp ?: "Unknown"
+        val latestNoteDate = analyzedNotes.firstOrNull()?.timestamp ?: "Unknown"
+
+// **Summary Report**
+        val noteSummary = if (analyzedNotes.isNotEmpty()) {
             """
-    📌 **Note Information**
-    - **Title:** ${note.title}
-    - **Content:** ${note.content}
-    - **Tag:** ${note.tag}
-    - **Created On:** ${note.timestamp}
-    - **Last Updated:** ${note.updatedTimestamp}
-    """.trimIndent()
+📊 **Note Analysis - Instant Insights:**  
+- **Total Notes:** $totalNotes  
+- **Most Used Tag:** #$mostFrequentTag  
+- **Content of Your Last Note:** "$recentNote"  
+- **Date of Your Last Note:** $latestNoteDate  
+- **Date of Your First Note:** $oldestNoteDate  
+""".trimIndent()
+        } else {
+            "📌 You haven't added any notes yet. Would you like to create a new one? ✍️"
         }
 
-// Limit chat history to the last 10 messages
+// **Chat History and User Information**
         val chatHistoryLimited = _chatHistory.value.takeLast(10).joinToString("\n") { it }
+        val userNotes = if (totalNotes > 0) analyzedNotes.joinToString("\n\n") { note ->
+            """
+📌 **Note Information**
+- **Title:** ${note.title}
+- **Content:** ${note.content}
+- **Tag:** ${note.tag}
+- **Created On:** ${note.timestamp}
+- **Last Updated:** ${note.updatedTimestamp}
+""".trimIndent()
+        } else "**You currently have no saved notes. If you want to add a new one, I'm here!** ✍️"
 
-// Generate an alternative message if the user has no saved notes
-        val userNotes = if (formattedNotes.isNotEmpty()) formattedNotes else "**You don’t have any saved notes at the moment. If you’d like, I can help you create a new one!** ✍️"
-
-// Generate a response even if some user details are missing
         val userInfo = """
 👤 **User Information:**  
 - **Name:** ${userProfile?.name ?: "Unknown"}  
 - **Email:** ${userProfile?.email ?: "Unknown"}  
 - **Date of Birth:** ${userProfile?.birthDate ?: "Unknown"}  
 - **Phone:** ${userProfile?.phoneNumber ?: "Unknown"}  
-- **Bio:** ${userProfile?.bio ?: "Unknown"}  
+- **Personal Note:** ${userProfile?.bio ?: "Unknown"}  
 """.trimIndent()
 
         val prompt = """
-### 🤖 **Jotter - Smart Note and Chat Assistant**
-I'm Jotter, your **personal AI assistant**, developed by T-Box! 🚀  
-**My mission:** To help you, analyze your notes, remind you of them, and chat whenever needed.  
+### 🤖 **Jotter - Your Personal AI Assistant**
+Hello! I'm **Jotter**, an assistant that analyzes your notes and provides you with smart insights. **Developed by Tovax Technology**, I'm here to help you **organize, analyze, and optimize your notes for better productivity**. 🚀  
 
----
+---  
 
 $userInfo  
 
-📝 **User's Notes:**  
+📌 **Latest Analysis of Your Notes:**  
+$noteSummary  
+
+📝 **User's Notes (From Most Recent to Oldest):**  
 $userNotes  
 
 💬 **Chat History (Last 10 Messages):**  
 $chatHistoryLimited  
 
----
+---  
 
-## 🎯 **Chat Rules & Response Strategy**
-- **Think of me as your buddy!** I’m not just an assistant; I’m your go-to companion. 😎  
-- **I can analyze your notes and give you suggestions.** For example, if you take too many work-related notes, I might say, **"Hey buddy, take a break!"**  
-- **I can provide recommendations.** I’ll find connections between your notes and suggest the best solutions.  
-- **I’ll keep the conversation fun and friendly.** I crack jokes when needed but won’t overdo it.  
-- **I remember our chat history and provide smart, contextual replies.** I won’t reset every time we talk.  
-- **I won’t repeat myself unnecessarily.** I won’t start every message with **"Hello Abdullah"**—I’ll keep it natural.  
-- **I might share fun facts from time to time.** I could say, _"Hey, did you know…?"_ and drop an interesting fact.  
-- **You can give me commands**, and I’ll do my best to follow them. For example:  
-  - `"Show me today's notes"` → I'll fetch the notes you wrote today.  
-  - `"Show me my notes from March 10, 2024"` → I'll find the notes from that date.  
-  - `"Read my oldest note"` → I’ll bring up your very first note.  
-  - `"What's my last updated note?"` → I'll show the most recently updated one.  
+## 🎯 **How Do I Work?**  
+I'm not just a chatbot—I function **like a real assistant**.  
+- **I analyze your notes and provide instant insights and suggestions.**  
+- **I process content immediately and return results without delay.**  
+- **I respond naturally and smoothly.**  
+- **I avoid unnecessary repetition and generate concise, intelligent responses.**  
 
----
+📌 **Suggestions & Commands:**  
+- `"Analyze my notes"` → I analyze your notes instantly and share the results.  
+- `"Show me my oldest note"` → I retrieve your very first saved note.  
+- `"What is my most recently updated note?"` → I find and display the latest edited note.  
+- `"List my important notes"` → I sort your critical notes based on frequently used tags.  
+- `"Summarize today's notes"` → I analyze and summarize all notes added today.  
+
+---  
 
 🎤 **User Message:**  
 "$userMessage"  
 
----
+---  
 
-📝 **Generating Response:**  
-Now, based on the above information, **generate a logical, contextual, and engaging response.**  
-- **Use the notes and chat history to craft an intelligent reply.**  
-- **Avoid unnecessary repetition—keep the conversation natural and smooth.**  
-- **Feel free to add humor,** but keep it relevant.  
-
-👇 **Now, generate your best response!** 🚀  
+Now, based on the information above, **generate an immediate, contextual response without delay**.  
+- **Analyze the notes and provide direct insights.**  
+- **Keep the conversation fast, natural, and seamless.**  
+- **Guide and support the user according to their interests.**  
+- **Provide not just information, but also actionable suggestions.**  
+  
 """.trimIndent()
+
 
 
         val jsonBody = JSONObject().apply {

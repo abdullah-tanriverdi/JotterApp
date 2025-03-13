@@ -242,7 +242,7 @@ fun ScreenQuickNotesAdd(navController: NavController, uid: String) {
                             }
                         },
                         textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
-                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Default),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp)
