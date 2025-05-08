@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.tovaxtechnology.jotter" />
+                  <option name="mobileSdkAppId" value="1:1026659924497:android:c18a961833d2eeda078fb0" />
+                  <option name="projectId" value="jotter-3fc11" />
+                  <option name="projectNumber" value="1026659924497" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
