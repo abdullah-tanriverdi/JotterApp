@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+    implementation(libs.androidx.material3.lint)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -71,6 +72,9 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation ("com.google.firebase:firebase-firestore-ktx:24.6.0")
     implementation ("com.google.firebase:firebase-auth-ktx:21.0.6")
+    implementation("androidx.compose.material3:material3:1.3.2")
+    implementation("androidx.compose.material:material-icons-extended:1.6.0")
+
 
 
 }

@@ -3,10 +3,7 @@ package com.tovaxtechnology.jotter.Auth
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.android.gms.tasks.Task
-import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 
 class AuthViewModel() : ViewModel() {
 
@@ -21,12 +18,10 @@ class AuthViewModel() : ViewModel() {
 
     fun checkAuthStatatus() {
         val user = authService.getCurrentUser()
-        if (user == null) {
-            _authState.value = AuthState.Unauthenticated
-        } else if (user.isEmailVerified) {
-            _authState.value = AuthState.Authenicated
-        } else {
-            _authState.value = AuthState.Unauthenticated
+        _authState.value = when {
+            user == null -> AuthState.Unauthenticated
+            user.isEmailVerified -> AuthState.Authenticated
+            else -> AuthState.EmailNotVerified
         }
     }
 
@@ -37,12 +32,12 @@ class AuthViewModel() : ViewModel() {
                 if (task.isSuccessful) {
                     val user = authService.getCurrentUser()
                     if (user?.isEmailVerified == true) {
-                        _authState.value = AuthState.Authenicated
+                        _authState.value = AuthState.Authenticated
                     } else {
-                        _authState.value = AuthState.Error("E-posta doğrulanmamış.")
+                        _authState.value = AuthState.Error("Email is not verified.")
                     }
                 } else {
-                    _authState.value = AuthState.Error("Giriş başarısız.")
+                    _authState.value = AuthState.Error("Login failed: ${task.exception?.message}")
                 }
             }
     }
@@ -54,22 +49,27 @@ class AuthViewModel() : ViewModel() {
                 if (task.isSuccessful) {
                     authService.sendEmailVerification()
                     authService.signOut()
-                    _authState.value = AuthState.Success("Doğrulama E-postası Gönderildi. Lütfen E-Posta Adresinizi Kontrol Ediniz.")
+                    _authState.value = AuthState.Success("Verification email sent. Please check your inbox.")
                 } else {
-                    _authState.value = AuthState.Error("Kayıt başarısız.")
+                    _authState.value = AuthState.Error("Sign-up failed: ${task.exception?.message}")
                 }
             }
     }
 
-    fun deleteAccount(onDeleteComplete: () -> Unit) {
+    fun deleteAccount() {
         _authState.value = AuthState.Loading
-        val user = authService.getCurrentUser()
-
-        if (user == null) {
-            _authState.value = AuthState.Error("Kullanıcı oturum açmamış.")
-            return
+        val task = authService.deleteCurrentUser()
+        if (task == null) {
+            _authState.value = AuthState.Error("No user is signed in.")
+        } else {
+            task.addOnCompleteListener { result ->
+                _authState.value = if (result.isSuccessful) {
+                    AuthState.Success("Account deleted successfully.")
+                } else {
+                    AuthState.Error("Failed to delete account.")
+                }
+            }
         }
-
     }
 
     fun resetPassword(email: String) {
@@ -77,22 +77,22 @@ class AuthViewModel() : ViewModel() {
         authService.sendPasswordResetEmail(email)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    _authState.value = AuthState.Success("Şifre Sıfırlama E-Postası Gönderildi")
+                    _authState.value = AuthState.Success("Password reset email sent.")
                 } else {
-                    _authState.value = AuthState.Error("Şifre Sıfırlama E-Postası Gönderilemedi.")
+                    _authState.value = AuthState.Error("Failed to send password reset email.")
                 }
             }
     }
 
-    fun signout(onSignoutComplete: () -> Unit) {
+    fun signOut() {
         authService.signOut()
         _authState.value = AuthState.Unauthenticated
-        onSignoutComplete()
     }
 
     sealed class AuthState {
-        object Authenicated : AuthState()
+        object Authenticated : AuthState()
         object Unauthenticated : AuthState()
+        object EmailNotVerified : AuthState()
         object Loading : AuthState()
         data class Success(val message: String) : AuthState()
         data class Error(val message: String) : AuthState()

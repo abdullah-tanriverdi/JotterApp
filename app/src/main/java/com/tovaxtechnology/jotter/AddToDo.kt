@@ -1,103 +1,154 @@
 package com.tovaxtechnology.jotter
 
-import android.os.Bundle
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
 import androidx.navigation.NavController
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.tovaxtechnology.jotter.Auth.AuthViewModel
+import java.text.SimpleDateFormat
+import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddToDo(navController: NavController) {
-    // State for title and description
-    var title by remember { mutableStateOf(TextFieldValue("")) }
-    var description by remember { mutableStateOf(TextFieldValue("")) }
-    val db = Firebase.firestore  // Firebase Firestore bağlantısı
+fun AddTodoScreen(navController: NavController, authViewModel: AuthViewModel) {
+    val context = LocalContext.current
+    val db = FirebaseFirestore.getInstance()
+    val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
 
-    // Task kaydetme fonksiyonu
-    fun addTask() {
-        if (title.text.isNotBlank() && description.text.isNotBlank()) {
-            val taskData = hashMapOf(
-                "title" to title.text,
-                "description" to description.text,
-                "created_at" to System.currentTimeMillis()
-            )
+    var title by remember { mutableStateOf("") }
+    var content by remember { mutableStateOf("") }
+    var tag by remember { mutableStateOf("") }
+    var selectedDate by remember { mutableStateOf<Date?>(null) }
+    var importance by remember { mutableStateOf("Normal") }
 
-            // Firestore'a veri ekleme
-            db.collection("tasks")
-                .add(taskData)
-                .addOnSuccessListener { documentReference ->
-                    Toast.makeText(
-                        navController.context,
-                        "Task added successfully!",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    navController.popBackStack() // Ekranı geri al
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(
-                        navController.context,
-                        "Error adding task: ${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-        } else {
-            Toast.makeText(
-                navController.context,
-                "Title and Description cannot be empty.",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
+    val calendar = Calendar.getInstance()
+
+    fun openDateTimePicker() {
+        DatePickerDialog(
+            context,
+            { _, year, month, day ->
+                TimePickerDialog(
+                    context,
+                    { _, hour, minute ->
+                        calendar.set(year, month, day, hour, minute)
+                        selectedDate = calendar.time
+                    },
+                    calendar.get(Calendar.HOUR_OF_DAY),
+                    calendar.get(Calendar.MINUTE),
+                    true
+                ).show()
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
     }
 
-    // UI Bileşenleri
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Text("Add a New Task", style = MaterialTheme.typography.headlineLarge)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Add New Todo") }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    if (currentUser == null) {
+                        Toast.makeText(context, "User not logged in.", Toast.LENGTH_SHORT).show()
+                        return@FloatingActionButton
+                    }
 
-        Spacer(modifier = Modifier.height(16.dp))
+                    val todo = hashMapOf(
+                        "title" to title,
+                        "content" to content,
+                        "tag" to tag,
+                        "importance" to importance,
+                        "timestamp" to (selectedDate ?: FieldValue.serverTimestamp())
+                    )
 
-        // Title TextField
-        OutlinedTextField(
-            value = title,
-            onValueChange = { title = it },
-            label = { Text("Title") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Description TextField
-        OutlinedTextField(
-            value = description,
-            onValueChange = { description = it },
-            label = { Text("Description") },
-            modifier = Modifier.fillMaxWidth(),
-            maxLines = 5
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Save button
-        Button(
-            onClick = { addTask() },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-        ) {
-            Text("Save Task")
+                    db.collection("todos")
+                        .document(currentUser.uid)
+                        .collection("items")
+                        .add(todo)
+                        .addOnSuccessListener {
+                            Toast.makeText(context, "Todo added!", Toast.LENGTH_SHORT).show()
+                            navController.popBackStack() // kayıt sonrası geri dön
+                        }
+                        .addOnFailureListener {
+                            Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_LONG).show()
+                        }
+                },
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(Icons.Default.Check, contentDescription = "Save")
+            }
         }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(16.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Title") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = content,
+                onValueChange = { content = it },
+                label = { Text("Content") },
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 5
+            )
+
+            OutlinedTextField(
+                value = tag,
+                onValueChange = { tag = it },
+                label = { Text("Tag") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Text(
+                text = "Importance",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+            )
+
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                ImportanceCheckbox("Important", importance) { importance = it }
+                ImportanceCheckbox("Normal", importance) { importance = it }
+                ImportanceCheckbox("Postpone", importance) { importance = it }
+            }
+
+        }
+    }
+}
+
+@Composable
+fun ImportanceCheckbox(label: String, current: String, onChecked: (String) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Checkbox(
+            checked = current == label,
+            onCheckedChange = { if (it) onChecked(label) }
+        )
+        Text(label)
     }
 }

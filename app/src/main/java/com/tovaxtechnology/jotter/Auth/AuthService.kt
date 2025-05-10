@@ -7,7 +7,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import java.lang.Exception
 
-class AuthService(private val auth : FirebaseAuth) {
+class AuthService(private val auth : FirebaseAuth = FirebaseAuth.getInstance()) {
 
     fun signInWithEmail(email : String , password : String) : Task<AuthResult> {
         return auth.signInWithEmailAndPassword(email , password)
@@ -23,7 +23,7 @@ class AuthService(private val auth : FirebaseAuth) {
     }
 
     fun sendEmailVerification() : Task<Void> {
-        return auth.currentUser?.sendEmailVerification() ?: forException(Exception("Kullanıcı oturum açmadı"))
+        return auth.currentUser?.sendEmailVerification() ?: forException(Exception("User is not signed in"))
     }
 
     fun signOut() {
@@ -33,6 +33,10 @@ class AuthService(private val auth : FirebaseAuth) {
 
     fun getCurrentUser() : FirebaseUser ? {
         return auth.currentUser
+    }
+
+    fun deleteCurrentUser(): Task<Void>?{
+        return auth.currentUser?.delete()
     }
 
 
