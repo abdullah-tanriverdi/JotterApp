@@ -2,4 +2,6 @@
 <resources>
 
     <style name="Theme.Jotter" parent="android:Theme.Material.Light.NoActionBar" />
+
+
 </resources>

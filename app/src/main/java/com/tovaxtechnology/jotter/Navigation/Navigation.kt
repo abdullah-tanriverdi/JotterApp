@@ -3,6 +3,8 @@ package com.tovaxtechnology.jotter.Navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -12,6 +14,7 @@ import com.tovaxtechnology.jotter.Auth.ScreenLogin
 import com.tovaxtechnology.jotter.Auth.ScreenReset
 import com.tovaxtechnology.jotter.Auth.ScreenSignUp
 import com.tovaxtechnology.jotter.HomeScreen.HomeScreen
+import com.tovaxtechnology.jotter.SplashScreen
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -20,7 +23,9 @@ fun Navigation (
     navController: NavHostController,
     authViewModel: AuthViewModel
 ){
-    NavHost(navController = navController ,  startDestination = "login"){
+
+
+    NavHost(navController = navController ,  startDestination = "splash"){
 
         composable("home"){
             HomeScreen(navController = navController, authViewModel= authViewModel)
@@ -42,6 +47,10 @@ fun Navigation (
 
         composable("addToDo") {
           AddTodoScreen(navController = navController , authViewModel = authViewModel)
+        }
+
+        composable("splash"){
+            SplashScreen(navController= navController, authViewModel=authViewModel)
         }
 
 

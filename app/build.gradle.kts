@@ -67,13 +67,13 @@ dependencies {
 
 
     implementation ("androidx.navigation:navigation-compose:2.7.5")
-
     implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation ("com.google.firebase:firebase-firestore-ktx:24.6.0")
     implementation ("com.google.firebase:firebase-auth-ktx:21.0.6")
     implementation("androidx.compose.material3:material3:1.3.2")
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
+
 
 
 
