@@ -1,14 +1,13 @@
 package com.tovaxtechnology.jotter
 
+
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,15 +20,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.tovaxtechnology.jotter.Auth.AuthViewModel
+import com.tovaxtechnology.jotter.HomeScreen.Todo
 import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTodoScreen(navController: NavController, authViewModel: AuthViewModel) {
+fun UpdateTodoScreen(todoId: String, navController: NavController) {
     val context = LocalContext.current
     val db = FirebaseFirestore.getInstance()
     val auth = FirebaseAuth.getInstance()
@@ -38,11 +36,29 @@ fun AddTodoScreen(navController: NavController, authViewModel: AuthViewModel) {
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
     var tag by remember { mutableStateOf("") }
-    var selectedDate by remember { mutableStateOf<Date?>(null) }
     var importance by remember { mutableStateOf("Normal") }
+
     var isSaving by remember { mutableStateOf(false) }
 
-
+    // Load existing todo
+    LaunchedEffect(todoId) {
+        if (currentUser != null) {
+            db.collection("todos")
+                .document(currentUser.uid)
+                .collection("items")
+                .document(todoId)
+                .get()
+                .addOnSuccessListener { document ->
+                    val todo = document.toObject(Todo::class.java)
+                    todo?.let {
+                        title = it.title
+                        content = it.content
+                        tag = it.tag
+                        importance = it.importance
+                    }
+                }
+        }
+    }
 
 
     Scaffold(
@@ -63,29 +79,30 @@ fun AddTodoScreen(navController: NavController, authViewModel: AuthViewModel) {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    if (currentUser == null || isSaving) return@FloatingActionButton
-
+                    if (currentUser == null) {
+                        Toast.makeText(context, "User not logged in.", Toast.LENGTH_SHORT).show()
+                        return@FloatingActionButton
+                    }
                     isSaving = true
 
-                    val todo = hashMapOf(
+                    val updatedData = mapOf(
                         "title" to title,
                         "content" to content,
                         "tag" to tag,
                         "importance" to importance,
-                        "timestamp" to (selectedDate ?: FieldValue.serverTimestamp())
+                        "timestamp" to Calendar.getInstance().time
                     )
 
                     db.collection("todos")
                         .document(currentUser.uid)
                         .collection("items")
-                        .add(todo)
+                        .document(todoId)
+                        .update(updatedData)
                         .addOnSuccessListener {
-                            isSaving = false
-                            Toast.makeText(context, "Todo added!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Todo updated!", Toast.LENGTH_SHORT).show()
                             navController.popBackStack()
                         }
                         .addOnFailureListener {
-                            isSaving = false
                             Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_LONG).show()
                         }
                 },
@@ -98,7 +115,7 @@ fun AddTodoScreen(navController: NavController, authViewModel: AuthViewModel) {
                         modifier = Modifier.size(24.dp)
                     )
                 } else {
-                    Icon(Icons.Default.Check, contentDescription = "Save", tint = MaterialTheme.colorScheme.onPrimary)
+                    Icon(Icons.Default.Check, contentDescription = "Update", tint = MaterialTheme.colorScheme.onPrimary)
                 }
             }
         }
@@ -186,88 +203,7 @@ fun AddTodoScreen(navController: NavController, authViewModel: AuthViewModel) {
             }
 
 
-
             ImportanceSection(importance = importance, onImportanceChanged = { importance = it })        }
     }
 }
-@Composable
-fun ImportanceSection(importance: String, onImportanceChanged: (String) -> Unit) {
-    // Başlık
-    Box(
-        modifier = Modifier.fillMaxWidth() // Ekran genişliğini alacak şekilde
-    ) {
-        Text(
-            text = "Importance",
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.5.sp
-            ),
-            modifier = Modifier
-                .padding(bottom = 16.dp)
-                .align(Alignment.Center), // Ortala
-            color = MaterialTheme.colorScheme.primary
-        )
-    }
 
-    // RadioButton'lar için Row
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        // "Important" seçeneği
-        ImportanceRadioButton(
-            label = "Important",
-            selected = importance == "Important",
-            onSelected = { onImportanceChanged("Important") },
-            color = Color(0xFFEF5350) // açık kırmızı
-        )
-
-        // "Normal" seçeneği
-        ImportanceRadioButton(
-            label = "Normal",
-            selected = importance == "Normal",
-            onSelected = { onImportanceChanged("Normal") },
-            color = Color(0xFF64B5F6) // mavi
-        )
-
-        // "Postpone" seçeneği
-        ImportanceRadioButton(
-            label = "Postpone",
-            selected = importance == "Postpone",
-            onSelected = { onImportanceChanged("Postpone") },
-            color = Color(0xFF81C784) // açık yeşil
-        )
-    }
-}
-
-@Composable
-fun ImportanceRadioButton(
-    label: String,
-    selected: Boolean,
-    onSelected: () -> Unit,
-    color: Color
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable(onClick = onSelected)
-    ) {
-        // RadioButton
-        RadioButton(
-            selected = selected,
-            onClick = onSelected,
-            modifier = Modifier.size(24.dp),
-            colors = RadioButtonDefaults.colors(
-                selectedColor = color, // Seçilen renk
-                unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f) // Seçili değilse soluk renk
-            )
-        )
-
-        // Label Text
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-            modifier = Modifier.padding(start = 8.dp),
-            color = if (selected) color else MaterialTheme.colorScheme.onSurface
-        )
-    }
-}

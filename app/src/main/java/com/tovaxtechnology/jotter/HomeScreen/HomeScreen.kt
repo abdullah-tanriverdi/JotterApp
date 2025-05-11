@@ -27,6 +27,8 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.tovaxtechnology.jotter.Auth.AuthViewModel
 import androidx.compose.foundation.lazy.items
+import com.google.firebase.firestore.Query
+
 
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
@@ -44,23 +46,31 @@ fun HomeScreen(
     var selectedTab by remember { mutableStateOf(0) }
     var todos by remember { mutableStateOf<List<Todo>>(emptyList()) }
     var searchQuery by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(true) }
 
-    val filteredTodos = todos.filter {
-        it.title.contains(searchQuery, ignoreCase = true)
-    }
+    val filteredTodos = todos
+        .filter { it.title.contains(searchQuery, ignoreCase = true) }
+        .sortedBy { it.completed } // completed == false olanlar üstte, true olanlar altta
 
-    // Firestore'dan verileri al
+
+    var showDialog by remember { mutableStateOf(false) }
+
     LaunchedEffect(currentUser?.uid) {
         if (currentUser != null) {
             db.collection("todos")
                 .document(currentUser.uid)
                 .collection("items")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener { result ->
                     todos = result.documents.map { doc ->
                         val todo = doc.toObject(Todo::class.java) ?: Todo()
-                        todo.copy(id = doc.id)  // Firestore'dan gelen veriye ID ekleme
+                        todo.copy(id = doc.id)
                     }
+                    isLoading = false
+                }
+                .addOnFailureListener{
+                    isLoading = false
                 }
         }
     }
@@ -75,69 +85,149 @@ fun HomeScreen(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
+                actions = {
+                    IconButton(onClick = {
+                        showDialog = true
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteSweep,
+                            tint = MaterialTheme.colorScheme.error,
+                            contentDescription = "Clear Completed Tasks"
+                        )
+                    }
+
+                    if (showDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showDialog = false },
+                            title = { Text("Clear Completed Tasks") },
+                            text = { Text("Are you sure you want to delete all completed tasks?") },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        showDialog = false
+                                        if (currentUser != null) {
+                                            val completedTodos = todos.filter { it.completed }
+                                            completedTodos.forEach { todo ->
+                                                db.collection("todos")
+                                                    .document(currentUser.uid)
+                                                    .collection("items")
+                                                    .document(todo.id)
+                                                    .delete()
+                                            }
+                                            todos = todos.filterNot { it.completed }
+                                        }
+                                    }
+                                ) {
+                                    Text("Yes", color = MaterialTheme.colorScheme.error)
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showDialog = false }) {
+                                    Text("Cancel")
+                                }
+                            }
+                        )
+                    }
+                }
+,
+                        colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
-        bottomBar = {
+
+
+
+    bottomBar = {
+        val selectedColor = Color(0xFF2196F3)
+        val unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        Box {
             NavigationBar(
                 tonalElevation = 8.dp,
-                containerColor = MaterialTheme.colorScheme.surface
+                containerColor = MaterialTheme.colorScheme.surface,
+                modifier = Modifier
+                    .shadow(8.dp, shape = RoundedCornerShape(topStart = 35.dp, topEnd = 35.dp))
             ) {
                 NavigationBarItem(
                     selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
+                    onClick = {
+                        if (selectedTab != 0) {
+                            selectedTab = 0
+                            navController.navigate("home")  // Home ekranına git
+                        }
+                    },
                     icon = {
                         Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Profile"
+                            imageVector = Icons.Default.HomeWork,
+                            modifier = Modifier.size(28.dp),
+                            contentDescription = "Home",
+                            tint = if (selectedTab == 0) selectedColor else unselectedColor
                         )
                     },
                     label = {
-                        Text("Profile")
+                        Text(
+                            "Home",
+                            color = if (selectedTab == 0) selectedColor else unselectedColor
+                        )
                     }
                 )
 
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { navController.navigate("addToDo") },
-                    icon = {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Add Todo",
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
-                    },
-                    label = {
-                        Text("")
-                    },
-                    alwaysShowLabel = false
-                )
+                Spacer(modifier = Modifier.width(48.dp)) // Ortadaki buton için boşluk
 
                 NavigationBarItem(
                     selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
+                    onClick = {
+                        // Profile ekranındaysak, sadece navigasyonu tetikle
+                        if (selectedTab != 1) {
+                            selectedTab = 1
+                            // Profile ekranında değilsen navigasyona git
+                            if (navController.currentBackStackEntry?.destination?.route != "profile") {
+                                navController.navigate("profile")
+                            }
+                        }
+                    },
                     icon = {
                         Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings"
+                            imageVector = Icons.Default.PersonPin,
+                            modifier = Modifier.size(28.dp),
+                            contentDescription = "Profile",
+                            tint = if (selectedTab == 1) selectedColor else unselectedColor
                         )
                     },
                     label = {
-                        Text("Settings")
+                        Text(
+                            "Profile",
+                            color = if (selectedTab == 1) selectedColor else unselectedColor
+                        )
                     }
                 )
             }
+
+            // Floating Action Button efekti
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .offset(y = (-24).dp),
+                contentAlignment = Alignment.Center
+            ) {
+                FloatingActionButton(
+                    onClick = { navController.navigate("addToDo") },
+                    containerColor = Color(0xFF4CAF50),
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    shape = CircleShape,
+                    elevation = FloatingActionButtonDefaults.elevation(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        modifier = Modifier.size(40.dp),
+                        contentDescription = "Add Todo"
+
+                    )
+                }
+            }
         }
+    }
+
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -171,43 +261,70 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Todo List Display
-            if (todos.isEmpty()) {
-                Text("No Todos", style = MaterialTheme.typography.bodyLarge)
-            } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(filteredTodos) { todo ->
-                        TodoItemCard(
-                            todo = todo,
-                            onCheckedChange = { isChecked ->
-                                if (currentUser != null) {
-                                    db.collection("todos")
-                                        .document(currentUser.uid)
-                                        .collection("items")
-                                        .document(todo.id)
-                                        .update("completed", isChecked)
 
-                                    todos = todos.map {
-                                        if (it.id == todo.id) it.copy(completed = isChecked) else it
+
+            if (isLoading){
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ){
+                    CircularProgressIndicator()
+                }
+
+            }else{
+                if (todos.isEmpty()) {
+                    Text("No Todos", style = MaterialTheme.typography.bodyLarge)
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(filteredTodos) { todo ->
+                            TodoItemCard(
+                                todo = todo,
+                                onCheckedChange = { isChecked ->
+                                    if (currentUser != null) {
+                                        db.collection("todos")
+                                            .document(currentUser.uid)
+                                            .collection("items")
+                                            .document(todo.id)
+                                            .update("completed", isChecked)
+
+                                        todos = todos.map {
+                                            if (it.id == todo.id) it.copy(completed = isChecked) else it
+                                        }
                                     }
+                                },
+                                onDelete = {
+                                    if (currentUser != null) {
+                                        db.collection("todos")
+                                            .document(currentUser.uid)
+                                            .collection("items")
+                                            .document(todo.id)
+                                            .delete()
+                                            .addOnSuccessListener {
+                                                todos = todos.filter {
+                                                    it.id != todo.id
+                                                }
+                                            }
+                                    }
+                                },
+
+                                onUpdate = {
+                                    navController.navigate("updateToDo/${todo.id}")
                                 }
-                            },
-                            onDelete = {
-                                if (currentUser != null) {
-                                    db.collection("todos")
-                                        .document(currentUser.uid)
-                                        .collection("items")
-                                        .document(todo.id)
-                                        .delete()
-                                }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             }
+
+
+
+
+
         }
     }
 }
@@ -216,13 +333,20 @@ fun HomeScreen(
 fun TodoItemCard(
     todo: Todo,
     onCheckedChange: (Boolean) -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit ,
+    onUpdate: () -> Unit
 ) {
-    val backgroundColor = if (todo.completed) {
-        MaterialTheme.colorScheme.error
-    } else {
-        MaterialTheme.colorScheme.surfaceVariant
+
+    val backgroundColor = when {
+        todo.completed -> Color(0xFFE0E0E0) // Tamamlanmışsa gri (örneğin #E0E0E0)
+        todo.importance == "Important" -> Color(0xFFFFCDD2) // açık kırmızı
+        todo.importance == "Postpone" -> Color(0xFFC8E6C9)  // açık yeşil
+        todo.importance == "Normal" -> Color(0xFFBBDEFB)    // açık mavi
+        else -> MaterialTheme.colorScheme.surfaceVariant
     }
+
+
+
 
     Card(
         modifier = Modifier
@@ -250,12 +374,36 @@ fun TodoItemCard(
                         fontWeight = FontWeight.SemiBold
                     )
                 }
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.error
-                    )
+
+                var expanded by remember { mutableStateOf(false) }
+
+                Box {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "More Options"
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Update") },
+                            onClick = {
+                                expanded = false
+                                onUpdate() // update işlemine yönlendirme
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Delete") },
+                            onClick = {
+                                expanded = false
+                                onDelete()
+                            }
+                        )
+                    }
                 }
             }
 
@@ -274,26 +422,24 @@ fun TodoItemCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (todo.tag.isNotEmpty()) {
-                    AssistChip(
-                        onClick = {},
-                        label = { Text(todo.tag) },
-                        colors = AssistChipDefaults.assistChipColors(
-                            labelColor = MaterialTheme.colorScheme.primary
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Label, // Burada istediğiniz ikonu kullanabilirsiniz
+                            contentDescription = "Tag Icon",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp) // İkon boyutunu buradan ayarlayabilirsiniz
                         )
-                    )
+                        Spacer(modifier = Modifier.width(4.dp)) // İkon ile etiket arasına boşluk ekleyin
+                        Text(
+                            text = todo.tag,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
 
-                AssistChip(
-                    onClick = {},
-                    label = { Text(todo.importance) },
-                    colors = AssistChipDefaults.assistChipColors(
-                        labelColor = when (todo.importance) {
-                            "Important" -> Color.Red
-                            "Postpone" -> Color.Gray
-                            else -> MaterialTheme.colorScheme.secondary
-                        }
-                    )
-                )
+
+
 
                 if (todo.timestamp != null) {
                     Text(

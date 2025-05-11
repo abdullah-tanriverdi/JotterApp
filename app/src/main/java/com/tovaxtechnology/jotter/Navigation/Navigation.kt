@@ -2,6 +2,7 @@ package com.tovaxtechnology.jotter.Navigation
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -14,7 +15,9 @@ import com.tovaxtechnology.jotter.Auth.ScreenLogin
 import com.tovaxtechnology.jotter.Auth.ScreenReset
 import com.tovaxtechnology.jotter.Auth.ScreenSignUp
 import com.tovaxtechnology.jotter.HomeScreen.HomeScreen
+import com.tovaxtechnology.jotter.ProfileScreen
 import com.tovaxtechnology.jotter.SplashScreen
+import com.tovaxtechnology.jotter.UpdateTodoScreen
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -29,6 +32,10 @@ fun Navigation (
 
         composable("home"){
             HomeScreen(navController = navController, authViewModel= authViewModel)
+        }
+
+        composable("profile"){
+            ProfileScreen(navController = navController , authViewModel = authViewModel)
         }
 
         composable("login"){
@@ -51,6 +58,13 @@ fun Navigation (
 
         composable("splash"){
             SplashScreen(navController= navController, authViewModel=authViewModel)
+        }
+
+        composable("updateToDo/{todoId}"){
+            backStackEntry ->
+            val todoId = backStackEntry.arguments?.getString("todoId") ?: ""
+            UpdateTodoScreen(todoId = todoId, navController = navController)
+
         }
 
 
