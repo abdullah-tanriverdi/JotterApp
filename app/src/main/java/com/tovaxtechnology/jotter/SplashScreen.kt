@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.tovaxtechnology.jotter.Auth.AuthViewModel
+import com.tovaxtechnology.jotter.ui.theme.Quicksand
 import kotlinx.coroutines.delay
 
 @Composable
@@ -83,15 +84,17 @@ fun SplashScreen(navController: NavHostController, authViewModel: AuthViewModel)
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
-                
+
             }
 
-            // En alttan biraz yukarıda duran Tovax Technology yazısı
+
             Text(
                 text = "Tovax Technology",
-                fontSize = 13.sp,
-                color = Color(0xFF9E9E9E),
-                modifier = Modifier.padding(bottom = 60.dp) // ALT BOŞLUK DEĞİŞTİ
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = Quicksand,
+                color = Color(0xFF616161),
+                modifier = Modifier.padding(bottom = 60.dp)
             )
         }
     }

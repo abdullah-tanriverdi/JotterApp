@@ -6,6 +6,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.compose.rememberNavController
@@ -23,6 +26,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             JotterTheme {
+
+
                 val navController = rememberNavController()
                 Navigation(
                     navController = navController,
@@ -30,6 +35,7 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+
     }
 }
 

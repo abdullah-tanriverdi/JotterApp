@@ -73,7 +73,7 @@ dependencies {
     implementation ("com.google.firebase:firebase-auth-ktx:21.0.6")
     implementation("androidx.compose.material3:material3:1.3.2")
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
-
+    implementation ("androidx.compose.ui:ui-text-google-fonts:1.3.0")
 
 
 
