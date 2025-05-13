@@ -35,7 +35,7 @@ fun Navigation (
         }
 
         composable("profile"){
-            ProfileScreen(navController = navController , authViewModel = authViewModel)
+            ProfileScreen(navController= navController)
         }
 
         composable("login"){
