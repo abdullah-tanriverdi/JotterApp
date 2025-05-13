@@ -1,7 +1,5 @@
 package com.tovaxtechnology.jotter
 
-
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +17,9 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,18 +28,33 @@ import com.tovaxtechnology.jotter.Auth.AuthViewModel
 import com.tovaxtechnology.jotter.ui.theme.Quicksand
 import kotlinx.coroutines.delay
 
-@Composable
-fun SplashScreen(navController: NavHostController, authViewModel: AuthViewModel) {
-    val authState by authViewModel.authState.observeAsState(AuthViewModel.AuthState.Loading)
+class SplashScreenUI(
+    private val navController: NavHostController,
+    private val authViewModel: AuthViewModel,
+) {
 
-    // 2 saniye bekleyip yönlendirme işlemi yapacağız
-    LaunchedEffect(Unit) {
-        delay(2000) // Splash ekranını 2 saniye gösterme
+    @Composable
+    fun SplashScreen() {
 
+        val authState by authViewModel.authState.observeAsState(AuthViewModel.AuthState.Loading)
+
+
+        LaunchedEffect(Unit) {
+            delay(2000L)
+
+
+            navigateBasedOnAuthState(authState)
+        }
+
+        SplashContent()
+    }
+
+
+    private fun navigateBasedOnAuthState(authState: AuthViewModel.AuthState) {
         when (authState) {
             is AuthViewModel.AuthState.Authenticated -> {
                 navController.navigate("home") {
-                    popUpTo("splash") { inclusive = true } // Splash ekranını stack'ten çıkar
+                    popUpTo("splash") { inclusive = true }
                     launchSingleTop = true
                 }
             }
@@ -56,46 +71,60 @@ fun SplashScreen(navController: NavHostController, authViewModel: AuthViewModel)
                 }
             }
             else -> {
-                // Loading durumunda hiçbir şey yapılmaz
+
             }
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally
+
+    @Composable
+    private fun SplashContent() {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Spacer(modifier = Modifier.height(50.dp))
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(50.dp))
 
-            // Orta içerik: Logo + Jotter
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    painter = painterResource(id = R.drawable.icon),
-                    contentDescription = "App Logo",
-                    tint = Color.Unspecified,
-                    modifier = Modifier.size(120.dp)
-                )
+                LogoSection()
 
-                Spacer(modifier = Modifier.height(24.dp))
-
+                BrandText()
             }
-
-
-            Text(
-                text = "Tovax Technology",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = Quicksand,
-                color = Color(0xFF616161),
-                modifier = Modifier.padding(bottom = 60.dp)
-            )
         }
+    }
+
+
+    @Composable
+    private fun LogoSection() {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                painter = painterResource(id = R.drawable.icon),
+                contentDescription = "App Logo",
+                tint = Color.Unspecified,
+                modifier = Modifier.size(160.dp)
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+
+
+    @Composable
+    private fun BrandText() {
+        Text(
+            text = stringResource(id = R.string.brand_name),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = Quicksand,
+            color = colorResource(id = R.color.gray),
+            modifier = Modifier.padding(bottom = 60.dp)
+        )
     }
 }
+
+

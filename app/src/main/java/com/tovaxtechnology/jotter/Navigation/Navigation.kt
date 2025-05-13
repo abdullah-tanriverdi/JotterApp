@@ -16,7 +16,7 @@ import com.tovaxtechnology.jotter.Auth.ScreenReset
 import com.tovaxtechnology.jotter.Auth.ScreenSignUp
 import com.tovaxtechnology.jotter.HomeScreen.HomeScreen
 import com.tovaxtechnology.jotter.ProfileScreen
-import com.tovaxtechnology.jotter.SplashScreen
+import com.tovaxtechnology.jotter.SplashScreenUI
 import com.tovaxtechnology.jotter.UpdateTodoScreen
 
 
@@ -29,6 +29,10 @@ fun Navigation (
 
 
     NavHost(navController = navController ,  startDestination = "splash"){
+
+        composable("splash"){
+            SplashScreenUI(navController = navController , authViewModel = authViewModel).SplashScreen()
+        }
 
         composable("home"){
             HomeScreen(navController = navController, authViewModel= authViewModel)
@@ -56,9 +60,6 @@ fun Navigation (
           AddTodoScreen(navController = navController , authViewModel = authViewModel)
         }
 
-        composable("splash"){
-            SplashScreen(navController= navController, authViewModel=authViewModel)
-        }
 
         composable("updateToDo/{todoId}"){
             backStackEntry ->
