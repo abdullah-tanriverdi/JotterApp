@@ -1,4 +1,4 @@
-package com.tovaxtechnology.jotter
+package com.tovaxtechnology.jotter.Splash
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.tovaxtechnology.jotter.Auth.AuthViewModel
+import com.tovaxtechnology.jotter.R
 import com.tovaxtechnology.jotter.ui.theme.Quicksand
 import kotlinx.coroutines.delay
 
@@ -121,7 +123,7 @@ class SplashScreenUI(
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = Quicksand,
-            color = colorResource(id = R.color.gray),
+            color = MaterialTheme.colorScheme.onTertiary,
             modifier = Modifier.padding(bottom = 60.dp)
         )
     }

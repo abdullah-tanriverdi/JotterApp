@@ -1,5 +1,25 @@
 <resources>
     <string name="app_name">Jotter</string>
-
     <string name="brand_name">Tovax Technology</string>
+    <string name="info">Info</string>
+    <string name="log_in">Log In</string>
+    <string name="email">E-Mail</string>
+    <string name="password">Password</string>
+    <string name="visibility">Visibility</string>
+    <string name="visibility_off">Visibility Off</string>
+    <string name="invalid_email">Please Enter A Valid Email</string>
+    <string name="invalid_password">Password Must Be At Least 6 Characters Long</string>
+    <string name = "email_error">Email Error</string>
+    <string name = "password_error">Password Error</string>
+    <string name = "sign_up_now">Dont Have An Account? Sign Up Now</string>
+    <string name ="forgot_password">I Forgot My Password</string>
+    <string name="reset_password">Password Reset</string>
+    <string name = "send_link">Send Link</string>
+    <string name="return_login_screen">Return To Login Screen</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="create_account">Create Account</string>
+    <string name="have_account">Already Have An Account? Log In!</string>
+
+
+    <string name="user_not_signed_in">Oturum Açılmamış</string>
 </resources>

@@ -2,6 +2,7 @@ package com.tovaxtechnology.jotter.ui.theme
 
 import android.app.Activity
 import android.os.Build
+import android.provider.CalendarContract.Colors
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
@@ -10,7 +11,9 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -31,15 +34,28 @@ val Quicksand = FontFamily(
 
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
     secondary = PurpleGrey80,
-    tertiary = Pink80
+    tertiary = Pink80,
+
+    primary = Color(0xFFD0F8CE),
+    onSurface = Color.White, //yazı rengi
+    onTertiary = Color(0xFFCCCCCC), //açık gri
+    background = Color.Black, //siyah renk
+    surface = Color(0xFF004AAD), // kartlar vs
+
+
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
+
     secondary = PurpleGrey40,
-    tertiary = Pink40
+    tertiary = Pink40,
+
+    primary =  Color(0xFF1B5E20),
+    onSurface = Color.Black, //yazı rengi
+    onTertiary = Color(0xFF616161), //kapalı gri
+    background = Color.White, //beyaz renk
+    surface = Color(0xFFBBDEFB), //kartlar vs.
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
