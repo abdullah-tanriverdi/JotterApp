@@ -35,13 +35,15 @@ val Quicksand = FontFamily(
 
 private val DarkColorScheme = darkColorScheme(
     secondary = PurpleGrey80,
-    tertiary = Pink80,
 
-    primary = Color(0xFFD0F8CE),
+
+    tertiary = Color(0xfff85c70),
+    primary = Color(0xFFA6E9A2),
     onSurface = Color.White, //yazı rengi
     onTertiary = Color(0xFFCCCCCC), //açık gri
     background = Color.Black, //siyah renk
     surface = Color(0xFF004AAD), // kartlar vs
+    onBackground = Color(0xFFFF9800)
 
 
 )
@@ -49,13 +51,16 @@ private val DarkColorScheme = darkColorScheme(
 private val LightColorScheme = lightColorScheme(
 
     secondary = PurpleGrey40,
-    tertiary = Pink40,
 
-    primary =  Color(0xFF1B5E20),
+
+    tertiary = Color(0xfff85c70),
+    primary = Color(0xFF2E7D32),
     onSurface = Color.Black, //yazı rengi
     onTertiary = Color(0xFF616161), //kapalı gri
     background = Color.White, //beyaz renk
     surface = Color(0xFFBBDEFB), //kartlar vs.
+    onBackground = Color(0xFFFF9800)
+
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -70,7 +75,7 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun JotterTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean,
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit

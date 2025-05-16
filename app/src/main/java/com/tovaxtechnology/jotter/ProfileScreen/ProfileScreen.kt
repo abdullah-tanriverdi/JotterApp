@@ -1,75 +1,123 @@
-package com.tovaxtechnology.jotter
+package com.tovaxtechnology.jotter.ProfileScreen
 
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Context
+import android.content.res.Configuration
+import android.content.res.Resources.Theme
+import android.os.Build
+import android.text.BoringLayout
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.HomeWork
+import androidx.compose.material.icons.filled.InvertColors
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.NightsStay
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PersonPin
+import androidx.compose.material.icons.filled.RadioButtonChecked
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
+import com.tovaxtechnology.jotter.R
+import com.tovaxtechnology.jotter.ui.theme.Quicksand
+import java.util.Locale
+
+
+fun getSavedLocale(context: Context): Locale {
+    val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    val languageCode = prefs.getString("selected_language", "en") ?: "en"
+    return Locale(languageCode)
+}
+
+fun saveLocale(context: Context, locale: Locale) {
+    val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    prefs.edit().putString("selected_language", locale.language).apply()
+}
+
+fun updateLocale(context: Context, newLocale: Locale): Context {
+    val configuration = Configuration(context.resources.configuration)
+    configuration.setLocale(newLocale)
+
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        context.createConfigurationContext(configuration)
+    } else {
+        @Suppress("DEPRECATION")
+        context.resources.updateConfiguration(configuration, context.resources.displayMetrics)
+        context
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun ProfileScreen(navController: NavController,
+                  isDarkTheme: Boolean,
+                  onThemeToggle: (Boolean) -> Unit) {
     var selectedTab by remember { mutableStateOf(1) }
+    var selectedLanguage by remember { mutableStateOf("English") }
     val context = LocalContext.current
-    val userEmail = FirebaseAuth.getInstance().currentUser?.email ?: "Unknown"
-    var showThemeDialog by remember { mutableStateOf(false) }
-    var showLanguageDialog by remember { mutableStateOf(false) }
-    var showChangePasswordDialog by remember { mutableStateOf(false) }
-    var showLogoutDialog by remember { mutableStateOf(false) }
-    var showNotificationDialog by remember { mutableStateOf(false) }
-    var showDeleteAccountDialog by remember { mutableStateOf(false) }
+    val activity = context as? Activity
+    var selectedLocale by remember { mutableStateOf(Locale("en")) }
+
+    LaunchedEffect(Unit) {
+        selectedLocale = getSavedLocale(context)
+    }
+
+
+
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Jotter",
-                        style = MaterialTheme.typography.titleLarge,
+                        text = stringResource( id = R.string.app_name ),
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = Quicksand,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         },
         bottomBar = {
-            val selectedColor = Color(0xFF2196F3)
-            val unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            val selectedColor = MaterialTheme.colorScheme.tertiary
+            val unselectedColor = MaterialTheme.colorScheme.onTertiary
             Box {
                 NavigationBar(
                     tonalElevation = 8.dp,
@@ -82,20 +130,25 @@ fun ProfileScreen(navController: NavController) {
                         onClick = {
                             if (selectedTab != 0) {
                                 selectedTab = 0
-                                navController.navigate("home")
+                                navController.navigate("home") {
+                                    popUpTo(0)
+                                    launchSingleTop = true
+                                }
                             }
                         },
                         icon = {
                             Icon(
                                 imageVector = Icons.Default.HomeWork,
                                 modifier = Modifier.size(28.dp),
-                                contentDescription = "Home",
+                                contentDescription = stringResource(id=R.string.home),
                                 tint = if (selectedTab == 0) selectedColor else unselectedColor
                             )
                         },
                         label = {
                             Text(
-                                "Home",
+                                stringResource(id=R.string.home),
+                                fontWeight = FontWeight.SemiBold,
+                                fontFamily = Quicksand,
                                 color = if (selectedTab == 0) selectedColor else unselectedColor
                             )
                         }
@@ -109,7 +162,10 @@ fun ProfileScreen(navController: NavController) {
                             if (selectedTab != 1) {
                                 selectedTab = 1
                                 if (navController.currentBackStackEntry?.destination?.route != "profile") {
-                                    navController.navigate("profile")
+                                    navController.navigate("profile") {
+                                        popUpTo(0)
+                                        launchSingleTop = true
+                                    }
                                 }
                             }
                         },
@@ -117,13 +173,15 @@ fun ProfileScreen(navController: NavController) {
                             Icon(
                                 imageVector = Icons.Default.PersonPin,
                                 modifier = Modifier.size(28.dp),
-                                contentDescription = "Profile",
+                                contentDescription =stringResource(id= R.string.profile),
                                 tint = if (selectedTab == 1) selectedColor else unselectedColor
                             )
                         },
                         label = {
                             Text(
-                                "Profile",
+                                stringResource(id= R.string.profile),
+                                fontWeight = FontWeight.SemiBold,
+                                fontFamily = Quicksand,
                                 color = if (selectedTab == 1) selectedColor else unselectedColor
                             )
                         }
@@ -138,15 +196,16 @@ fun ProfileScreen(navController: NavController) {
                 ) {
                     FloatingActionButton(
                         onClick = { navController.navigate("addToDo") },
-                        containerColor = Color(0xFF4CAF50),
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.background,
                         shape = CircleShape,
                         elevation = FloatingActionButtonDefaults.elevation(16.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
                             modifier = Modifier.size(40.dp),
-                            contentDescription = "Add Todo"
+                            contentDescription = stringResource(id=R.string.addToDo)
+
                         )
                     }
                 }
@@ -160,161 +219,121 @@ fun ProfileScreen(navController: NavController) {
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            ProfileOptionList(
-                userEmail = userEmail,
-                onLogout = {
-                    showLogoutDialog = true
-                },
-                onDeleteAccount = {
-                    showDeleteAccountDialog = true                },
-                onChangeTheme = { showThemeDialog = true },
-                onChangeLanguage = {
-                   showLanguageDialog = true
-                },
-                onChangePassword = {
-                    showChangePasswordDialog = true
-                },
-                onNotificationToggle = {
-                    showNotificationDialog = true
 
+            ThemeSwitchCard(
+                isDarkTheme = isDarkTheme,
+                onToggle = { onThemeToggle(it) }
+            )
+
+            LanguageSelectionCard(
+                selectedLocale = selectedLocale,
+                onLanguageSelect = { locale ->
+                    selectedLocale = locale
+                    saveLocale(context, locale)
+                    if (activity != null) {
+                        activity.recreate()
+                    }
                 }
             )
 
-            if (showThemeDialog) {
-                ThemeSelectionDialog(onDismiss = { showThemeDialog = false })
-            }
-
-            if (showLanguageDialog) {
-                LanguageSelectionDialog(onDismiss = { showLanguageDialog = false })
-            }
-
-            if (showNotificationDialog) {
-                NotificationSettingsDialog(onDismiss = { showNotificationDialog = false })
-            }
-
-            if (showChangePasswordDialog) {
-                ChangePasswordDialog(
-                    onDismiss = { showChangePasswordDialog = false },
-                    userEmail = userEmail
-                )
-            }
-
-            if (showLogoutDialog) {
-                LogoutConfirmationDialog(
-                    onDismiss = { showLogoutDialog = false },
-                    onConfirmLogout = {
-                        FirebaseAuth.getInstance().signOut()
-                        Toast.makeText(context, "Çıkış yapıldı", Toast.LENGTH_SHORT).show()
-                        navController.navigate("login") {
-                            popUpTo("profile") { inclusive = true }
-                        }
-                    }
-                )
-            }
-
-            if (showDeleteAccountDialog) {
-                DeleteAccountDialog(
-                    onDismiss = { showDeleteAccountDialog = false },
-                    userEmail = userEmail,
-                    onAccountDeleted = {
-                        navController.navigate("login") {
-                            popUpTo("profile") { inclusive = true }
-                        }
-                    }
-                )
-            }
-
-
 
         }
     }
 }
 
 @Composable
-fun ProfileOptionList(
-    userEmail: String,
-    onLogout: () -> Unit,
-    onDeleteAccount: () -> Unit,
-    onChangeTheme: () -> Unit,
-    onChangeLanguage: () -> Unit,
-    onChangePassword: () -> Unit,
-    onNotificationToggle: () -> Unit
+fun LanguageSelectionCard(
+    selectedLocale: Locale,
+    onLanguageSelect: (Locale) -> Unit
 ) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.fillMaxWidth()
+    var isExpanded by remember { mutableStateOf(false) }
+
+    val languageOptions = listOf(
+        "Kurdî" to Locale("ku"),
+        "English" to Locale("en"),
+        "Türkçe" to Locale("tr"),
+        "العربية" to Locale("ar")
+    )
+
+    // Burada seçilen locale göre dil adını bulalım
+    val selectedLanguageName = languageOptions.find { it.second == selectedLocale }?.first ?: "English"
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .wrapContentHeight(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(6.dp)
     ) {
-        // Account Info
-        ElevatedCard(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 6.dp),
-            colors = CardDefaults.elevatedCardColors(
-                containerColor =  Color(0xFFC8E6C9)
-        )
+                .clickable { isExpanded = !isExpanded }
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
-            Column(modifier = Modifier.padding(24.dp)) {
-                Text(
-                    text = "Account Information",
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                    color = Color.Black
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Email Section
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Default.Email,
-                        contentDescription = "Email Icon",
-                        tint = Color.Black
+                        imageVector = Icons.Default.Language,
+                        contentDescription = stringResource(id = R.string.language_selection),
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(28.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = userEmail,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.Black
+                        text = stringResource(id = R.string.language_selection),
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = selectedLanguageName,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Icon(
+                        imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            }
 
-
+            AnimatedVisibility(visible = isExpanded) {
+                Column(modifier = Modifier.padding(top = 12.dp)) {
+                    languageOptions.forEach { (langName, locale) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onLanguageSelect(locale)
+                                    isExpanded = false
+                                }
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = if (selectedLocale == locale) Icons.Default.RadioButtonChecked else Icons.Default.RadioButtonUnchecked,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = langName,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
             }
         }
-
-        val options = listOf(
-            ProfileOption("Change Theme", Icons.Default.ColorLens, Color.Black, onChangeTheme),
-            ProfileOption("Language", Icons.Default.Language, Color.Black, onChangeLanguage),
-            ProfileOption("Change Password", Icons.Default.Lock, Color.Black, onChangePassword),
-            ProfileOption("Notifications", Icons.Default.Notifications, Color.Black, onNotificationToggle),
-            ProfileOption("Logout", Icons.Default.ExitToApp, MaterialTheme.colorScheme.error, onLogout),
-            ProfileOption("Delete My Account", Icons.Default.Delete, MaterialTheme.colorScheme.error, onDeleteAccount)
-        )
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 200.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(options) { option ->
-                ProfileOptionItem(
-                    text = option.text,
-                    icon = option.icon,
-                    onClick = option.action,
-                    color = option.color,
-                    modifier = Modifier.height(80.dp)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        
     }
 }
 
@@ -323,170 +342,69 @@ fun ProfileOptionList(
 
 
 @Composable
-fun ProfileOptionItem(
-    text: String,
-    icon: ImageVector? = null,
-    onClick: () -> Unit,
-    color: Color,
-    modifier: Modifier = Modifier
+fun ThemeSwitchCard(
+    isDarkTheme: Boolean,
+    onToggle: (Boolean) -> Unit
 ) {
-    Surface(
-        modifier = modifier
+    Card(
+        modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .clickable { onClick() },
-        color =  Color(0xFFBBDEFB),
-        tonalElevation = 4.dp,
-        shadowElevation = 2.dp
+            .padding(horizontal = 16.dp)
+            .height(80.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(6.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .clickable { onToggle(!isDarkTheme) }
+                .padding(horizontal = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            icon?.let {
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = it,
-                    contentDescription = null,
-                    tint = color,
-                    modifier = Modifier.size(24.dp)
+                    imageVector = Icons.Default.InvertColors,
+                    contentDescription = stringResource(id = R.string.theme),
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(28.dp)
                 )
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = stringResource(id = R.string.theme),
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = Quicksand,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-                color  = color
-            )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+                    .padding(horizontal = 14.dp, vertical = 8.dp)
+            ) {
+                Icon(
+                    imageVector = if (isDarkTheme) Icons.Default.NightsStay else Icons.Default.WbSunny,
+                    contentDescription = if (isDarkTheme) stringResource(id=R.string.dark) else stringResource(id= R.string.light),
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = if (isDarkTheme) stringResource(id=R.string.dark) else stringResource(id= R.string.light),
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Normal,
+                    fontFamily = Quicksand,
+                )
+            }
         }
     }
-}
-
-
-data class ProfileOption(
-    val text: String,
-    val icon: ImageVector?,
-    val color: Color,
-    val action: () -> Unit
-)
-
-@Composable
-fun ThemeSelectionDialog(
-    onDismiss: () -> Unit
-) {
-    var selectedTheme by remember { mutableStateOf("System Default") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = Color(0xFFE3F2FD),
-        title = {
-            Text(
-                text = "Choose Theme",
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.Black // Başlık siyah
-            )
-        },
-        text = {
-            Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                val options = listOf("Light Mode", "Dark Mode")
-
-                options.forEach { theme ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { selectedTheme = theme }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = selectedTheme == theme,
-                            onClick = { selectedTheme = theme },
-                            colors = RadioButtonDefaults.colors(
-                                selectedColor = Color(0xFF388E3C), // Mavi seçili durum
-                                unselectedColor = Color(0xFF757575) // Gri seçili olmayan durum
-                            )
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = theme,
-                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Normal),
-                            color = Color.Black // Yazılar siyah
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(
-                    text = "OK",
-                    color = Color(0xFF388E3C),
-                )
-            }
-        },
-        shape = RoundedCornerShape(16.dp), // Köşe yuvarlatma
-        modifier = Modifier.fillMaxWidth()
-    )
-}
-
-
-@Composable
-fun LanguageSelectionDialog(
-    onDismiss: () -> Unit
-) {
-    var selectedLanguage by remember { mutableStateOf("Türkçe") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = Color(0xFFE3F2FD),
-        title = {
-            Text(
-                text = "Dil Seçimi",
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.Black
-            )
-        },
-        text = {
-            Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                val options = listOf("Türkçe", "Kürtçe", "Arapça")
-
-                options.forEach { language ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { selectedLanguage = language }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = selectedLanguage == language,
-                            onClick = { selectedLanguage = language },
-                            colors = RadioButtonDefaults.colors(
-                                selectedColor = Color(0xFF388E3C), // Yeşil seçili
-                                unselectedColor = Color(0xFF757575)
-                            )
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = language,
-                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Normal),
-                            color = Color.Black
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(
-                    text = "Tamam",
-                    color = Color(0xFF388E3C)
-                )
-            }
-        },
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth()
-    )
 }
 
 @Composable

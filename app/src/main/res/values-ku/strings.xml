@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Jotter</string>
+    <string name="brand_name">Tovax Teknolojî</string>
+    <string name="info">Agahî</string>
+    <string name="log_in">Têkeve</string>
+    <string name="email">E-name</string>
+    <string name="password">Şîfre</string>
+    <string name="visibility">Nîşandan</string>
+    <string name="visibility_off">Veşartin</string>
+    <string name="invalid_email">Ji kerema xwe navnîşana e-nameyê rast binivîse</string>
+    <string name="invalid_password">Şîfre divê kêmî 6 tîpan be</string>
+    <string name="email_error">Xeletiya E-nameyê</string>
+    <string name="password_error">Xeletiya Şîfreyê</string>
+    <string name="sign_up_now">Hesabek te tune? Niha Tomar bike</string>
+    <string name="forgot_password">Şîfreya xwe ji bîr kir</string>
+    <string name="reset_password">Veguhastina Şîfreyê</string>
+    <string name="send_link">Girêdanê bişîne</string>
+    <string name="return_login_screen">Vegere Ekrana Têkevinê</string>
+    <string name="sign_up">Tomar Bibe</string>
+    <string name="create_account">Hesab Çêke</string>
+    <string name="have_account">Jixwe hesabek te heye? Têkeve!</string>
+    <string name="clear_task">Karên qedandî pak bike</string>
+    <string name="clear_task_sure">Ma tu bi rastî dixwazî hemû karên qedandî jêbirî?</string>
+    <string name="yes">Erê</string>
+    <string name="cancel">Betal kirin</string>
+    <string name="addToDo">Karê nû zêde bike</string>
+    <string name="profile">Profîl</string>
+    <string name="home">Mal</string>
+    <string name="search_task">Di karan de lêgerîn...</string>
+    <string name="search">Lêgerîn</string>
+    <string name="no_todos">Kar tune</string>
+    <string name="more_options">Vebijarkên zêde</string>
+    <string name="update">Nûve bike</string>
+    <string name="delete">Jêbirin</string>
+    <string name="tag_icon">Nîşana Tîpa</string>
+    <string name="unknown">Nenas</string>
+    <string name="choose_theme">Mijara Hilbijêre</string>
+    <string name="light_mode">Moda Ronahî</string>
+    <string name="dark_mode">Moda Tarî</string>
+    <string name="ok">Baş e</string>
+    <string name="theme">Mijar</string>
+    <string name="dark">Tarî</string>
+    <string name="light">Ronahî</string>
+    <string name="language_selection">Hilbijartina Zimanê</string>
+</resources>

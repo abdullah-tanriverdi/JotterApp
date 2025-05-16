@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">جوتر</string>
+    <string name="brand_name">توفاكس تكنولوجي</string>
+    <string name="info">معلومات</string>
+    <string name="log_in">تسجيل الدخول</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="password">كلمة المرور</string>
+    <string name="visibility">إظهار</string>
+    <string name="visibility_off">إخفاء</string>
+    <string name="invalid_email">يرجى إدخال بريد إلكتروني صالح</string>
+    <string name="invalid_password">يجب أن تكون كلمة المرور 6 أحرف على الأقل</string>
+    <string name="email_error">خطأ في البريد الإلكتروني</string>
+    <string name="password_error">خطأ في كلمة المرور</string>
+    <string name="sign_up_now">ليس لديك حساب؟ سجل الآن</string>
+    <string name="forgot_password">نسيت كلمة المرور</string>
+    <string name="reset_password">إعادة تعيين كلمة المرور</string>
+    <string name="send_link">إرسال الرابط</string>
+    <string name="return_login_screen">العودة إلى شاشة تسجيل الدخول</string>
+    <string name="sign_up">تسجيل</string>
+    <string name="create_account">إنشاء حساب</string>
+    <string name="have_account">هل لديك حساب؟ تسجيل الدخول!</string>
+    <string name="clear_task">مسح المهام المكتملة</string>
+    <string name="clear_task_sure">هل أنت متأكد أنك تريد حذف جميع المهام المكتملة؟</string>
+    <string name="yes">نعم</string>
+    <string name="cancel">إلغاء</string>
+    <string name="addToDo">إضافة مهمة</string>
+    <string name="profile">الملف الشخصي</string>
+    <string name="home">الرئيسية</string>
+    <string name="search_task">ابحث في مهامك...</string>
+    <string name="search">بحث</string>
+    <string name="no_todos">لا توجد مهام</string>
+    <string name="more_options">المزيد من الخيارات</string>
+    <string name="update">تحديث</string>
+    <string name="delete">حذف</string>
+    <string name="tag_icon">رمز الوسم</string>
+    <string name="unknown">غير معروف</string>
+    <string name="choose_theme">اختر السمة</string>
+    <string name="light_mode">الوضع الفاتح</string>
+    <string name="dark_mode">الوضع الداكن</string>
+    <string name="ok">موافق</string>
+    <string name="theme">السمة</string>
+    <string name="dark">داكن</string>
+    <string name="light">فاتح</string>
+    <string name="language_selection">اختيار اللغة</string>
+</resources>

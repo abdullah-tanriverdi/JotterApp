@@ -19,7 +19,28 @@
     <string name="sign_up">Sign Up</string>
     <string name="create_account">Create Account</string>
     <string name="have_account">Already Have An Account? Log In!</string>
+    <string name="clear_task">Clear Completed Tasks</string>
+    <string name="clear_task_sure">Are You Sure You Want To Delete All Completed Tasks?</string>
+    <string name="yes">Yes</string>
+    <string name="cancel">Cancel</string>
+    <string name="addToDo">Add To Do</string>
+    <string name="profile">Profile</string>
+    <string name="home">Home</string>
+    <string name="search_task">Search Your Tasks...</string>
+    <string name="search">Search</string>
+    <string name="no_todos">No Todos</string>
+    <string name="more_options">More Options</string>
+    <string name="update">Update</string>
+    <string name="delete">Delete</string>
+    <string name="tag_icon">Tag Icon</string>
+    <string name="unknown">Unknown</string>
+    <string name="choose_theme">Choose Theme</string>
+    <string name="light_mode">Light Mode</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="ok">Ok</string>
+    <string name="theme">Theme</string>
+    <string name="dark">Dark</string>
+    <string name="light">Light</string>
+    <string name="language_selection">Language Selection</string>
 
-
-    <string name="user_not_signed_in">Oturum Açılmamış</string>
 </resources>

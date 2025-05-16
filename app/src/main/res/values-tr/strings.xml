@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+    <resources>
+        <string name="app_name">Jotter</string>
+        <string name="brand_name">Tovax Teknoloji</string>
+        <string name="info">Bilgi</string>
+        <string name="log_in">Giriş Yap</string>
+        <string name="email">E-Posta</string>
+        <string name="password">Şifre</string>
+        <string name="visibility">Göster</string>
+        <string name="visibility_off">Gizle</string>
+        <string name="invalid_email">Lütfen geçerli bir e-posta girin</string>
+        <string name="invalid_password">Şifre en az 6 karakter olmalıdır</string>
+        <string name="email_error">E-posta Hatası</string>
+        <string name="password_error">Şifre Hatası</string>
+        <string name="sign_up_now">Hesabınız yok mu? Şimdi Kayıt Olun</string>
+        <string name="forgot_password">Şifremi Unuttum</string>
+        <string name="reset_password">Şifre Sıfırlama</string>
+        <string name="send_link">Bağlantı Gönder</string>
+        <string name="return_login_screen">Giriş Ekranına Dön</string>
+        <string name="sign_up">Kayıt Ol</string>
+        <string name="create_account">Hesap Oluştur</string>
+        <string name="have_account">Zaten hesabınız var mı? Giriş Yap!</string>
+        <string name="clear_task">Tamamlananları Temizle</string>
+        <string name="clear_task_sure">Tamamlanan tüm görevleri silmek istediğinize emin misiniz?</string>
+        <string name="yes">Evet</string>
+        <string name="cancel">İptal</string>
+        <string name="addToDo">Görev Ekle</string>
+        <string name="profile">Profil</string>
+        <string name="home">Ana Sayfa</string>
+        <string name="search_task">Görevlerde Ara...</string>
+        <string name="search">Ara</string>
+        <string name="no_todos">Görev Yok</string>
+        <string name="more_options">Daha Fazla Seçenek</string>
+        <string name="update">Güncelle</string>
+        <string name="delete">Sil</string>
+        <string name="tag_icon">Etiket İkonu</string>
+        <string name="unknown">Bilinmiyor</string>
+        <string name="choose_theme">Tema Seç</string>
+        <string name="light_mode">Açık Tema</string>
+        <string name="dark_mode">Koyu Tema</string>
+        <string name="ok">Tamam</string>
+        <string name="theme">Tema</string>
+        <string name="dark">Koyu</string>
+        <string name="light">Açık</string>
+        <string name="language_selection">Dil Seçimi</string>
+    </resources>
+

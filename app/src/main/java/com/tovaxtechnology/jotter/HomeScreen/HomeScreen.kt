@@ -27,10 +27,14 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.tovaxtechnology.jotter.Auth.AuthViewModel
 import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.sp
 import com.google.firebase.firestore.Query
 
 
 import com.google.firebase.Timestamp
+import com.tovaxtechnology.jotter.R
+import com.tovaxtechnology.jotter.ui.theme.Quicksand
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -47,10 +51,9 @@ fun HomeScreen(
     var todos by remember { mutableStateOf<List<Todo>>(emptyList()) }
     var searchQuery by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(true) }
-
     val filteredTodos = todos
         .filter { it.title.contains(searchQuery, ignoreCase = true) }
-        .sortedBy { it.completed } // completed == false olanlar üstte, true olanlar altta
+        .sortedBy { it.completed }
 
 
     var showDialog by remember { mutableStateOf(false) }
@@ -80,8 +83,9 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Jotter",
-                        style = MaterialTheme.typography.titleLarge,
+                        text = stringResource( id = R.string.app_name ),
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = Quicksand,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 },
@@ -90,17 +94,30 @@ fun HomeScreen(
                         showDialog = true
                     }) {
                         Icon(
-                            imageVector = Icons.Default.DeleteSweep,
+                            imageVector = Icons.Default.FolderDelete,
                             tint = MaterialTheme.colorScheme.error,
-                            contentDescription = "Clear Completed Tasks"
+                            contentDescription = stringResource(id= R.string.clear_task)
                         )
                     }
 
                     if (showDialog) {
                         AlertDialog(
+                            containerColor = MaterialTheme.colorScheme.surface,
                             onDismissRequest = { showDialog = false },
-                            title = { Text("Clear Completed Tasks") },
-                            text = { Text("Are you sure you want to delete all completed tasks?") },
+                            title = { Text(
+                                text = stringResource(id = R.string.clear_task),
+                                fontWeight = FontWeight.SemiBold,
+                                fontFamily = Quicksand,
+                                fontSize = 20.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            ) },
+                            text = {  Text(
+                                text = stringResource(id = R.string.clear_task_sure),
+                                fontWeight = FontWeight.Normal,
+                                fontFamily = Quicksand,
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            ) },
                             confirmButton = {
                                 TextButton(
                                     onClick = {
@@ -118,20 +135,25 @@ fun HomeScreen(
                                         }
                                     }
                                 ) {
-                                    Text("Yes", color = MaterialTheme.colorScheme.error)
+                                    Text(stringResource(id = R.string.yes),fontWeight = FontWeight.Normal,
+                                        fontFamily = Quicksand,
+                                        fontSize = 16.sp,
+                                        color = MaterialTheme.colorScheme.error)
                                 }
                             },
                             dismissButton = {
                                 TextButton(onClick = { showDialog = false }) {
-                                    Text("Cancel")
+                                    Text(stringResource(id = R.string.cancel),
+                                        fontFamily = Quicksand,
+                                        fontSize = 16.sp, color = MaterialTheme.colorScheme.primary)
                                 }
                             }
                         )
                     }
                 }
 ,
-                        colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         },
@@ -139,8 +161,8 @@ fun HomeScreen(
 
 
     bottomBar = {
-        val selectedColor = Color(0xFF2196F3)
-        val unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        val selectedColor = MaterialTheme.colorScheme.tertiary
+        val unselectedColor = MaterialTheme.colorScheme.onTertiary
         Box {
             NavigationBar(
                 tonalElevation = 8.dp,
@@ -153,36 +175,43 @@ fun HomeScreen(
                     onClick = {
                         if (selectedTab != 0) {
                             selectedTab = 0
-                            navController.navigate("home")  // Home ekranına git
+                            navController.navigate("home") {
+                                popUpTo(0)
+                                launchSingleTop = true
+                            }
                         }
                     },
                     icon = {
                         Icon(
                             imageVector = Icons.Default.HomeWork,
                             modifier = Modifier.size(28.dp),
-                            contentDescription = "Home",
+                            contentDescription = stringResource(id=R.string.home),
                             tint = if (selectedTab == 0) selectedColor else unselectedColor
                         )
                     },
                     label = {
                         Text(
-                            "Home",
+                            stringResource(id=R.string.home),
+                            fontWeight = FontWeight.SemiBold,
+                            fontFamily = Quicksand,
                             color = if (selectedTab == 0) selectedColor else unselectedColor
                         )
                     }
                 )
 
-                Spacer(modifier = Modifier.width(48.dp)) // Ortadaki buton için boşluk
+                Spacer(modifier = Modifier.width(48.dp))
 
                 NavigationBarItem(
                     selected = selectedTab == 1,
                     onClick = {
-                        // Profile ekranındaysak, sadece navigasyonu tetikle
+
                         if (selectedTab != 1) {
                             selectedTab = 1
-                            // Profile ekranında değilsen navigasyona git
                             if (navController.currentBackStackEntry?.destination?.route != "profile") {
-                                navController.navigate("profile")
+                                navController.navigate("profile") {
+                                    popUpTo(0)
+                                    launchSingleTop = true
+                                }
                             }
                         }
                     },
@@ -190,20 +219,22 @@ fun HomeScreen(
                         Icon(
                             imageVector = Icons.Default.PersonPin,
                             modifier = Modifier.size(28.dp),
-                            contentDescription = "Profile",
+                            contentDescription =stringResource(id= R.string.profile),
                             tint = if (selectedTab == 1) selectedColor else unselectedColor
                         )
                     },
                     label = {
                         Text(
-                            "Profile",
+                            stringResource(id= R.string.profile),
+                            fontWeight = FontWeight.SemiBold,
+                            fontFamily = Quicksand,
                             color = if (selectedTab == 1) selectedColor else unselectedColor
                         )
                     }
                 )
             }
 
-            // Floating Action Button efekti
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -212,15 +243,15 @@ fun HomeScreen(
             ) {
                 FloatingActionButton(
                     onClick = { navController.navigate("addToDo") },
-                    containerColor = Color(0xFF4CAF50),
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.background,
                     shape = CircleShape,
                     elevation = FloatingActionButtonDefaults.elevation(16.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         modifier = Modifier.size(40.dp),
-                        contentDescription = "Add Todo"
+                        contentDescription = stringResource(id=R.string.addToDo)
 
                     )
                 }
@@ -238,16 +269,23 @@ fun HomeScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Search Bar
+
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Search your tasks...") },
-                leadingIcon = {
+                placeholder = {
+                    Text(
+                        text = stringResource(id = R.string.search_task),
+                        fontWeight = FontWeight.SemiBold,
+                        fontFamily = Quicksand,
+                        color = MaterialTheme.colorScheme.onTertiary
+                    )
+                },
+                        leadingIcon = {
                     Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
+                        imageVector = Icons.Default.ContentPasteSearch,
+                        contentDescription = stringResource(id=R.string.search),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 },
@@ -255,7 +293,7 @@ fun HomeScreen(
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onTertiary
                 )
             )
 
@@ -275,7 +313,20 @@ fun HomeScreen(
 
             }else{
                 if (todos.isEmpty()) {
-                    Text("No Todos", style = MaterialTheme.typography.bodyLarge)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.no_todos),
+                            fontWeight = FontWeight.SemiBold,
+                            fontFamily = Quicksand,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 30.sp
+
+                        )
+                    }
                 } else {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -337,16 +388,20 @@ fun TodoItemCard(
     onUpdate: () -> Unit
 ) {
 
-    val backgroundColor = when {
-        todo.completed -> Color(0xFFE0E0E0) // Tamamlanmışsa gri (örneğin #E0E0E0)
-        todo.importance == "Important" -> Color(0xFFFFCDD2) // açık kırmızı
-        todo.importance == "Postpone" -> Color(0xFFC8E6C9)  // açık yeşil
-        todo.importance == "Normal" -> Color(0xFFBBDEFB)    // açık mavi
+    val importanceColor = when {
+        todo.completed -> MaterialTheme.colorScheme.surfaceVariant
+        todo.importance == "Important" -> MaterialTheme.colorScheme.tertiary
+        todo.importance == "Postpone" -> MaterialTheme.colorScheme.primary
+        todo.importance == "Normal" -> MaterialTheme.colorScheme.onBackground
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
 
-
+    val cardColor = if (todo.completed) {
+        MaterialTheme.colorScheme.onTertiary
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
 
     Card(
         modifier = Modifier
@@ -354,10 +409,16 @@ fun TodoItemCard(
             .padding(vertical = 8.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = backgroundColor
+            containerColor = cardColor
         )
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+        Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -370,8 +431,10 @@ fun TodoItemCard(
                     )
                     Text(
                         text = todo.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        fontFamily = Quicksand,
+                        fontSize = 20.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
 
@@ -380,24 +443,40 @@ fun TodoItemCard(
                 Box {
                     IconButton(onClick = { expanded = true }) {
                         Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "More Options"
+                            imageVector = Icons.Default.ExpandMore,
+                            contentDescription = stringResource(id = R.string.more_options),
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
                     DropdownMenu(
                         expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier.background(MaterialTheme.colorScheme.background)
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Update") },
+                            text = {
+                                Text(
+                                    stringResource(id = R.string.update),
+                                    fontWeight = FontWeight.Medium,
+                                    fontFamily = Quicksand,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                            },
                             onClick = {
                                 expanded = false
-                                onUpdate() // update işlemine yönlendirme
+                                onUpdate()
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Delete") },
+                            text = {
+                                Text(
+                                    stringResource(id = R.string.delete),
+                                    fontWeight = FontWeight.Medium,
+                                    fontFamily = Quicksand,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                            },
                             onClick = {
                                 expanded = false
                                 onDelete()
@@ -410,7 +489,10 @@ fun TodoItemCard(
             if (todo.content.isNotEmpty()) {
                 Text(
                     text = todo.content,
-                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = Quicksand,
+                    fontSize = 17.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
@@ -424,16 +506,15 @@ fun TodoItemCard(
                 if (todo.tag.isNotEmpty()) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = Icons.Default.Label, // Burada istediğiniz ikonu kullanabilirsiniz
-                            contentDescription = "Tag Icon",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(16.dp) // İkon boyutunu buradan ayarlayabilirsiniz
+                            imageVector = Icons.Default.EventAvailable,
+                            contentDescription = stringResource(id = R.string.tag_icon),
+                            modifier = Modifier.size(16.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp)) // İkon ile etiket arasına boşluk ekleyin
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = todo.tag,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -451,6 +532,15 @@ fun TodoItemCard(
                 }
             }
         }
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(12.dp)
+                    .clip(CircleShape)
+                    .background(importanceColor)
+            )
+    }
     }
 }
 
