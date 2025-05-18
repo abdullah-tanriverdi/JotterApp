@@ -71,7 +71,8 @@ fun Navigation (
         composable("profile"){
             ProfileScreen(navController = navController,
                 isDarkTheme = isDarkTheme,
-                onThemeToggle = onThemeToggle)
+                onThemeToggle = onThemeToggle,
+                authViewModel= authViewModel)
         }
 
 

@@ -145,7 +145,9 @@ fun HomeScreen(
                                 TextButton(onClick = { showDialog = false }) {
                                     Text(stringResource(id = R.string.cancel),
                                         fontFamily = Quicksand,
-                                        fontSize = 16.sp, color = MaterialTheme.colorScheme.primary)
+                                        fontWeight = FontWeight.Normal,
+                                        fontSize = 16.sp,
+                                        color = MaterialTheme.colorScheme.primary)
                                 }
                             }
                         )

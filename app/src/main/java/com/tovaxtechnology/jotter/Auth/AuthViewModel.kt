@@ -3,7 +3,7 @@ package com.tovaxtechnology.jotter.Auth
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 
 
 class AuthViewModel() : ViewModel() {
@@ -79,17 +79,30 @@ class AuthViewModel() : ViewModel() {
         _authState.value = AuthState.Unauthenticated
     }
 
-    fun deleteAccount(){
+    fun deleteAccount() {
         _authState.value = AuthState.Loading
-        val task = authService.deleteCurrentUser()
-        if (task == null) {
+        val user = authService.getCurrentUser()
+
+        if (user == null) {
             _authState.value = AuthState.Unauthenticated
-        } else {
-            task.addOnCompleteListener {
-                _authState.value = AuthState.Unauthenticated
-            }
+            return
         }
+
+        user.delete()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    _authState.value = AuthState.AccountDeleted
+                } else {
+                    val exception = task.exception
+                    if (exception is FirebaseAuthRecentLoginRequiredException) {
+                        _authState.value = AuthState.ReauthRequired
+                    } else {
+                        _authState.value = AuthState.DeleteFailed(exception?.localizedMessage ?: "Unknown error")
+                    }
+                }
+            }
     }
+
 
 
 
@@ -100,6 +113,9 @@ class AuthViewModel() : ViewModel() {
         object Loading : AuthState()
         object ResetSuccess : AuthState()
         object SignUpSuccess : AuthState()
+        object AccountDeleted : AuthState()
+        object ReauthRequired : AuthState()
+        data class DeleteFailed(val message: String) : AuthState()
 
 
     }

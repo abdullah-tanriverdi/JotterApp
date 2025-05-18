@@ -67,6 +67,14 @@ class SplashScreenUI(
                     launchSingleTop = true
                 }
             }
+
+            is AuthViewModel.AuthState.AccountDeleted -> {
+                navController.navigate("login") {
+                    popUpTo("splash") { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+
             is AuthViewModel.AuthState.EmailNotVerified -> {
                 navController.navigate("login") {
                     popUpTo("splash") { inclusive = true }

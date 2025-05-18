@@ -287,7 +287,7 @@ fun ScreenSignUp(
                     }
                 ) {
                     Text(
-                        "Already have an account? Log in!",
+                        stringResource(id= R.string.have_account),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = Quicksand,
