@@ -3,14 +3,10 @@ package com.tovaxtechnology.jotter.Navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.tovaxtechnology.jotter.AddTodoScreen
+import com.tovaxtechnology.jotter.ToDo.AddTodoScreen
 import com.tovaxtechnology.jotter.Auth.AuthViewModel
 import com.tovaxtechnology.jotter.Auth.ScreenLogin
 import com.tovaxtechnology.jotter.Auth.ScreenReset
@@ -18,7 +14,7 @@ import com.tovaxtechnology.jotter.Auth.ScreenSignUp
 import com.tovaxtechnology.jotter.HomeScreen.HomeScreen
 import com.tovaxtechnology.jotter.ProfileScreen.ProfileScreen
 import com.tovaxtechnology.jotter.Splash.SplashScreenUI
-import com.tovaxtechnology.jotter.UpdateTodoScreen
+import com.tovaxtechnology.jotter.ToDo.UpdateTodoScreen
 
 
 @RequiresApi(Build.VERSION_CODES.O)

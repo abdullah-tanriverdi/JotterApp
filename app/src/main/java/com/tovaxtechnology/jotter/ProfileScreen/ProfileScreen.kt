@@ -969,7 +969,14 @@ fun LanguageSelectionCard(
         "Kurdî" to Locale("ku"),
         "English" to Locale("en"),
         "Türkçe" to Locale("tr"),
-        "العربية" to Locale("ar")
+        "العربية" to Locale("ar"),
+        "فارسی" to Locale("fa"),
+        "中文" to Locale("zh"),
+        "Deutsch" to Locale("de"),
+        "Русский" to Locale("ur"),
+        "Français" to Locale("fr"),
+        "Español" to Locale("es")
+
     )
 
     val selectedLanguageName = languageOptions.find { it.second == selectedLocale }?.first ?: "English"

@@ -535,13 +535,33 @@ fun TodoItemCard(
             }
         }
 
+            val importanceIconColor = when (todo.importance) {
+                stringResource(id=R.string.important) -> MaterialTheme.colorScheme.tertiary
+                stringResource(id=R.string.postpone) -> MaterialTheme.colorScheme.onBackground
+                stringResource(id=R.string.normal) -> MaterialTheme.colorScheme.primary
+                else -> MaterialTheme.colorScheme.onSurfaceVariant
+            }
+
+            val importanceIcon = when (todo.importance) {
+                stringResource(id=R.string.important) -> Icons.Default.Warning
+                stringResource(id=R.string.postpone) -> Icons.Default.Schedule
+                stringResource(id=R.string.normal) -> Icons.Default.Assignment
+                else -> Icons.Default.Assignment
+            }
+
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .size(12.dp)
-                    .clip(CircleShape)
-                    .background(importanceColor)
-            )
+                    .size(20.dp)
+
+            ){
+                Icon(
+                    imageVector = importanceIcon,
+                    contentDescription = todo.importance,
+                    tint = importanceIconColor,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
     }
     }
 }
