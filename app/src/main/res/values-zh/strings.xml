@@ -83,4 +83,10 @@
     <string name="eg">例如：工作，个人</string>
     <string name="content">内容</string>
     <string name="describe">详细描述你的任务...</string>
+    <string name="chatbot">Jotter 人工智能助手</string>
+    <string name="message_write">写一条消息...</string>
+    <string name="you">你</string>
+    <string name="assistant">助手</string>
+
+
 </resources>

@@ -83,4 +83,9 @@
     <string name="eg">Örn. İş, Kişisel</string>
     <string name="content">İçerik</string>
     <string name="describe">Görevinizi Detaylı Anlatın...</string>
+    <string name="chatbot">Jotter Yapay Zekâ Asistanı</string>
+    <string name="message_write">Bir Mesaj Yaz...</string>
+    <string name="you">Sen</string>
+    <string name="assistant">Asistan</string>
+
 </resources>

@@ -83,4 +83,10 @@
     <string name="eg">Mînak: Kar, Kesane</string>
     <string name="content">Naverok</string>
     <string name="describe">Karê Xwe Bi Hêvîdariya Zêdetir Binarîne...</string>
+    <string name="chatbot">Alîkarê Zêrekîya Jotter</string>
+    <string name="message_write">Peyamêk Binivîse...</string>
+    <string name="you">Tu</string>
+    <string name="assistant">Alîkar</string>
+
+
 </resources>

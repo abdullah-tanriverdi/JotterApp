@@ -83,4 +83,8 @@
     <string name="eg">E.g. Work, Personal</string>
     <string name="content">Content</string>
     <string name="describe">Describe Your Task In Detail...</string>
+    <string name="chatbot">Jotter AI Chatbot</string>
+    <string name="message_write">Write a Message...</string>
+    <string name="you">Sen</string>
+    <string name="assistant">Assistant</string>
 </resources>

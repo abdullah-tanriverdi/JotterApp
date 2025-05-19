@@ -11,6 +11,8 @@ import com.tovaxtechnology.jotter.Auth.AuthViewModel
 import com.tovaxtechnology.jotter.Auth.ScreenLogin
 import com.tovaxtechnology.jotter.Auth.ScreenReset
 import com.tovaxtechnology.jotter.Auth.ScreenSignUp
+import com.tovaxtechnology.jotter.Chatbot.ChatViewModel
+import com.tovaxtechnology.jotter.Chatbot.Chatbot
 import com.tovaxtechnology.jotter.HomeScreen.HomeScreen
 import com.tovaxtechnology.jotter.ProfileScreen.ProfileScreen
 import com.tovaxtechnology.jotter.Splash.SplashScreenUI
@@ -69,6 +71,10 @@ fun Navigation (
                 isDarkTheme = isDarkTheme,
                 onThemeToggle = onThemeToggle,
                 authViewModel= authViewModel)
+        }
+
+        composable("chatbot"){
+            Chatbot( viewModel = ChatViewModel())
         }
 
 

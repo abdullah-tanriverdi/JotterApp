@@ -83,4 +83,10 @@
     <string name="eg">مثلاً: عمل، شخصي</string>
     <string name="content">المحتوى</string>
     <string name="describe">وصف مهمتك بالتفصيل...</string>
+    <string name="chatbot">مساعد Jotter الذكي</string>
+    <string name="message_write">اكتب رسالة...</string>
+    <string name="you">أنت</string>
+    <string name="assistant">المساعد</string>
+
+
 </resources>

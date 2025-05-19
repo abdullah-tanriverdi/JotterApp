@@ -12,11 +12,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.compose.rememberNavController
 import com.tovaxtechnology.jotter.Auth.AuthViewModel
 import com.tovaxtechnology.jotter.Navigation.Navigation
@@ -34,8 +29,6 @@ class MainActivity : ComponentActivity() {
         val localeUpdatedContext = updateLocale(newBase, Locale(languageCode))
         super.attachBaseContext(localeUpdatedContext)
     }
-
-
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

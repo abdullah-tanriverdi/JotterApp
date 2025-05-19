@@ -83,4 +83,10 @@
     <string name="eg">مثلاً: کار، شخصی</string>
     <string name="content">محتوا</string>
     <string name="describe">وظیفه خود را به‌طور کامل توضیح دهید...</string>
+    <string name="chatbot">دستیار هوش مصنوعی Jotter</string>
+    <string name="message_write">یک پیام بنویسید...</string>
+    <string name="you">شما</string>
+    <string name="assistant">دستیار</string>
+
+
 </resources>

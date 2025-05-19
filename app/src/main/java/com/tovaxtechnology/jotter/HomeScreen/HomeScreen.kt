@@ -1,6 +1,7 @@
 package com.tovaxtechnology.jotter.HomeScreen
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -35,6 +36,7 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.Timestamp
 import com.tovaxtechnology.jotter.R
 import com.tovaxtechnology.jotter.ui.theme.Quicksand
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -55,8 +57,9 @@ fun HomeScreen(
         .filter { it.title.contains(searchQuery, ignoreCase = true) }
         .sortedBy { it.completed }
 
-
     var showDialog by remember { mutableStateOf(false) }
+
+
 
     LaunchedEffect(currentUser?.uid) {
         if (currentUser != null) {
@@ -160,9 +163,12 @@ fun HomeScreen(
             )
         },
 
+        floatingActionButton = {
+            ExpandableChatbotFab(navController = navController)
+        },
 
 
-    bottomBar = {
+                bottomBar = {
         val selectedColor = MaterialTheme.colorScheme.tertiary
         val unselectedColor = MaterialTheme.colorScheme.onTertiary
         Box {
@@ -381,6 +387,52 @@ fun HomeScreen(
         }
     }
 }
+
+@Composable
+fun ExpandableChatbotFab(navController: NavController) {
+    var expanded by remember { mutableStateOf(false) }
+
+    LaunchedEffect(expanded) {
+        if (expanded) {
+            delay(800)
+            navController.navigate("chatbot")
+            expanded = false
+        }
+    }
+    Row(
+        modifier = Modifier
+            .padding(16.dp)
+            .clip(RoundedCornerShape(50))
+            .background(MaterialTheme.colorScheme.onBackground)
+            .clickable {
+                expanded = !expanded
+            }
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.SmartToy,
+            contentDescription = stringResource(id=R.string.chatbot),
+            tint = MaterialTheme.colorScheme.background,
+            modifier = Modifier.size(24.dp)
+        )
+
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandHorizontally(animationSpec = tween(300)) + fadeIn(),
+            exit = shrinkHorizontally(animationSpec = tween(300)) + fadeOut()
+        ) {
+            Text(
+                text = stringResource(id=R.string.chatbot),
+                color = MaterialTheme.colorScheme.background,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+    }
+}
+
+
 
 @Composable
 fun TodoItemCard(

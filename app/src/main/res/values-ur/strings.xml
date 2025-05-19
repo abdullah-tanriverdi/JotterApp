@@ -83,4 +83,10 @@
     <string name="eg">Напр. Работа, Личное</string>
     <string name="content">Содержимое</string>
     <string name="describe">Опишите Свою Задачу Подробно...</string>
+    <string name="chatbot">Искусственный интеллект помощник Jotter</string>
+    <string name="message_write">Напишите сообщение...</string>
+    <string name="you">Вы</string>
+    <string name="assistant">Ассистент</string>
+
+
 </resources>

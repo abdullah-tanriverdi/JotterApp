@@ -83,4 +83,10 @@
     <string name="eg">Ex. Travail, Personnel</string>
     <string name="content">Contenu</string>
     <string name="describe">Décrivez Votre Tâche En Détail...</string>
+    <string name="chatbot">Assistant IA Jotter</string>
+    <string name="message_write">Écrivez Un Message...</string>
+    <string name="you">Vous</string>
+    <string name="assistant">Assistant</string>
+
+
 </resources>
